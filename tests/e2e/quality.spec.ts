@@ -5,7 +5,7 @@ import uz from "../../src/i18n/uz";
 const PUBLIC_PAGES = ["/", "/login", "/register", "/projects", "/opportunities"];
 
 for (const lang of ["uz", "ru"]) for (const path of PUBLIC_PAGES) {
-  test(`a11y [${lang}]: ${path} has no serious accessibility violations`, async ({ page, context, baseURL }) => {
+  test(`@live a11y [${lang}]: ${path} has no serious accessibility violations`, async ({ page, context, baseURL }) => {
     await context.addCookies([{ name: "lang", value: lang, url: baseURL! }]);
     await page.goto(path);
     const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
@@ -13,7 +13,7 @@ for (const lang of ["uz", "ru"]) for (const path of PUBLIC_PAGES) {
     expect(serious.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
   });
 
-  test(`mobile [${lang}]: ${path} does not scroll sideways at 375px`, async ({ page, context, baseURL }) => {
+  test(`@live mobile [${lang}]: ${path} does not scroll sideways at 375px`, async ({ page, context, baseURL }) => {
     await context.addCookies([{ name: "lang", value: lang, url: baseURL! }]);
     await page.setViewportSize({ width: 375, height: 800 });
     await page.goto(path);
@@ -22,7 +22,7 @@ for (const lang of ["uz", "ru"]) for (const path of PUBLIC_PAGES) {
   });
 }
 
-test("mobile menu opens and links work", async ({ page }) => {
+test("@live mobile menu opens and links work", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto("/");
   await page.locator(".mobile-menu > summary").click();
@@ -30,7 +30,7 @@ test("mobile menu opens and links work", async ({ page }) => {
   await expect(page).toHaveURL("/projects");
 });
 
-test("no console errors on public pages", async ({ page }) => {
+test("@live no console errors on public pages", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });

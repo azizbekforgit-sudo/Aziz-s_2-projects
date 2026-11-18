@@ -105,7 +105,7 @@ test("student journey: register → approval → submit project → moderation �
   assertNoErrors();
 });
 
-test("wrong password shows an error", async ({ page }) => {
+test("@live wrong password shows an error", async ({ page }) => {
   await login(page, ADMIN_EMAIL, "definitely-wrong");
   await expect(page.locator(".alert")).toHaveText(t.login.invalid);
 });
@@ -127,7 +127,7 @@ test("open redirect is blocked", async ({ page }) => {
   await expect(page).toHaveURL("/dashboard");
 });
 
-test("language: Uzbek by default, switcher changes to Russian and back", async ({ page, context }) => {
+test("@live language: Uzbek by default, switcher changes to Russian and back", async ({ page, context }) => {
   await context.clearCookies();
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", "uz");
@@ -141,7 +141,7 @@ test("language: Uzbek by default, switcher changes to Russian and back", async (
   await expect(page.getByRole("heading", { name: uz.register.title })).toBeVisible();
 });
 
-test("HTML is never cached by the browser", async ({ request }) => {
+test("@live HTML is never cached by the browser", async ({ request }) => {
   const res = await request.get("/register");
   expect(res.headers()["cache-control"]).toContain("no-store");
 });

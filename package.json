@@ -15,7 +15,8 @@
     "check": "npm run db:check && npm run lint && npm run typecheck && npm run test",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "node --env-file-if-exists=.env --import tsx prisma/seed.ts"
+    "db:seed": "node --env-file-if-exists=.env --import tsx prisma/seed.ts",
+    "test:live": "E2E_BASE_URL=https://talent-to-impact.onrender.com playwright test --grep @live"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
