@@ -9,6 +9,8 @@ const REMOTE = process.env.E2E_BASE_URL;
 export default defineConfig({
   testDir: "tests/e2e",
   timeout: 60_000,
+  // a deployed site is slower than localhost
+  expect: { timeout: REMOTE ? 15_000 : 5_000 },
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 1 : 0,

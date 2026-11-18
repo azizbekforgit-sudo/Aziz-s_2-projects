@@ -141,7 +141,7 @@ test("@live language: Uzbek by default, switcher changes to Russian and back", a
   await expect(page.getByRole("heading", { name: uz.register.title })).toBeVisible();
 });
 
-test("@live HTML is never cached by the browser", async ({ request }) => {
-  const res = await request.get("/register");
-  expect(res.headers()["cache-control"]).toContain("no-store");
+test("@live HTML is never cached by the browser", async ({ page }) => {
+  const res = await page.goto("/register");
+  expect(res?.headers()["cache-control"]).toContain("no-store");
 });
