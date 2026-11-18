@@ -1,2 +1,23 @@
-import Link from "next/link";
-export default function Mentorship(){return <main className="shell page-wrap"><div className="container"><Link href="/dashboard" className="muted">← Dashboard</Link><div className="panel" style={{maxWidth:760,margin:"70px auto"}}><div className="kicker">Learn with guidance</div><h1 style={{fontSize:42}}>MENTORSHIP</h1><p className="muted">Mentor verification, safe matching and communication workflows must be implemented before mentor requests are enabled, especially because the platform serves minors.</p><span className="status">IN DEVELOPMENT</span></div></div></main>}
+import type { Metadata } from "next";
+import { GraduationCap } from "lucide-react";
+import { ComingSoon } from "@/components/coming-soon";
+
+export const metadata: Metadata = { title: "Mentorship" };
+
+export default function Mentorship() {
+  return (
+    <ComingSoon
+      eyebrow="Learn with guidance"
+      title="Mentorship"
+      description="Get guidance from verified mentors."
+      accent="gold"
+      icon={<GraduationCap size={20} aria-hidden="true" />}
+      features={[
+        "Verified mentors from universities, companies and NGOs.",
+        "Safe matching based on your interests and projects.",
+        "Moderated communication that protects students under 18."
+      ]}
+      blocker="Mentor verification and child-safe communication rules must be in place first, because most students are minors."
+    />
+  );
+}

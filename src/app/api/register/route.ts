@@ -1,25 +1,17 @@
 import { NextResponse } from "next/server";
-import { hash } from "bcryptjs";
-import { prisma } from "@/lib/prisma";
-import { registerSchema } from "@/lib/validators";
+import { registerSchema, fieldErrors } from "@/lib/validators";
+import { registerStudent } from "@/lib/users";
 
+// JSON API for sign-up. The website itself uses the server action in src/app/register/actions.ts;
+// both go through registerSchema + registerStudent so the rules can't drift apart.
 export async function POST(req: Request) {
-  try {
-    const body = registerSchema.parse(await req.json());
-    const email = body.email.toLowerCase().trim();
-    const exists = await prisma.user.findUnique({ where: { email } });
-    if (exists) return NextResponse.json({ error: "Этот email уже зарегистрирован." }, { status: 409 });
-    const user = await prisma.user.create({
-      data: {
-        name: body.name.trim(), email, passwordHash: await hash(body.password, 12),
-        preferredLang: body.preferredLang, regionId: body.regionId || undefined,
-        schoolId: body.schoolId || undefined, grade: body.grade,
-        role: "STUDENT", status: "PENDING", verification: "UNVERIFIED"
-      },
-      select: { id: true, name: true, email: true, status: true }
-    });
-    return NextResponse.json({ user, message: "Заявка создана. Дождитесь активации аккаунта администратором." }, { status: 201 });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.issues?.[0]?.message || "Не удалось создать аккаунт." }, { status: 400 });
+  const body = await req.json().catch(() => null);
+  const parsed = registerSchema.safeParse(body);
+  if (!parsed.success) {
+    const errors = fieldErrors(parsed.error);
+    return NextResponse.json({ error: Object.values(errors)[0], errors }, { status: 400 });
   }
+  const result = await registerStudent(parsed.data);
+  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.field === "email" ? 409 : 400 });
+  return NextResponse.json({ message: "Account created. An administrator will activate it soon." }, { status: 201 });
 }

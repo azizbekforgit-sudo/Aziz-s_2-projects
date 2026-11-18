@@ -3,11 +3,13 @@
 A working foundation for the TALENT TO IMPACT ecosystem, based on Master Specification 2.0.
 
 ## Stack
-- Next.js App Router + React + TypeScript
-- PostgreSQL + Prisma
-- Auth.js Credentials authentication
-- Tailwind CSS v4, Framer Motion dependency, Lucide icons
-- Manrope / Plus Jakarta Sans visual system
+- Next.js 15 App Router + React 19 + TypeScript (strict)
+- PostgreSQL 16 + Prisma
+- Auth.js v5 credentials authentication (JWT sessions)
+- Own CSS design system (`src/app/globals.css`), Lucide icons, Manrope / Plus Jakarta Sans via `next/font`
+- Vitest (unit), Playwright + axe (end-to-end, accessibility), GitHub Actions CI
+
+📐 **How the project is structured, with diagrams: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**
 
 ## Requirements
 - Node.js 20.9+
@@ -17,28 +19,32 @@ A working foundation for the TALENT TO IMPACT ecosystem, based on Master Specifi
 ## Run locally
 
 ```bash
-cp .env.example .env
+cp .env.example .env      # then set SEED_ADMIN_PASSWORD and AUTH_SECRET
 docker compose up -d
 npm install
-npx prisma generate
-npx prisma migrate dev --name init
+npm run db:push
 npm run db:seed
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3000. The seed creates an active Super Administrator from `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`. Public registration only creates a pending student account; an administrator approves it in `/admin`.
 
-The seed command creates a Super Administrator using `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` from `.env`. Change the example password before running it. The seeded admin account is active. Public registration only creates a pending student account; users cannot self-assign privileged roles.
+## Quality checks
+```bash
+npm run check       # Prisma schema, ESLint, TypeScript, unit tests
+npm run test:e2e    # production build + full user journey in a real browser + accessibility + mobile layout
+```
+CI runs both on every push (`.github/workflows/ci.yml`).
 
-## Implemented in this starter
-- Premium responsive public landing page and core design tokens
-- PostgreSQL schema for users, roles, regions, schools, Talent Map structures, hackathons, teams, projects, opportunities, mentorship requests, notifications, XP and audit logs
-- Credentials sign-in backed by hashed passwords
-- Student registration API with validation and pending approval state
-- Protected student dashboard with real database counts
-- Projects read/create API; new projects enter moderation queue
-- Public projects and approved opportunities listings
-- Role-gated admin overview with real database counts
+## Implemented
+- Public landing page, projects and opportunities listings
+- Student registration with validation → pending approval
+- Sign-in with clear errors (wrong password vs. account not yet approved), safe redirect back
+- Student dashboard: own projects with review status, verified XP, teams
+- Project submission form → moderation queue
+- Admin: live counts, approve/reject accounts, approve/reject projects, audit log
+- Role-based access checked against the database on every request
+- Honest "coming soon" pages for Talent Map, Knowledge Bridge and Mentorship
 - Initial Navoi region, administrator and eight competency records
 
 ## Explicitly not complete yet
@@ -56,6 +62,9 @@ This is a runnable foundation / first implementation slice, **not yet the fully 
 - Production deployment, object storage, monitoring, backup automation, security review and end-to-end test suite
 
 The specification deliberately leaves some scoring and governance rules to formal approval. The code does not invent them.
+
+## Deployment
+Render Blueprint in `render.yaml` (web service + PostgreSQL). Every push to the configured branch deploys automatically; on start the app syncs the schema (`prisma db push`), runs the idempotent seed and starts Next.js.
 
 ## Important production checklist
 1. Replace `AUTH_SECRET` with a cryptographically random secret.

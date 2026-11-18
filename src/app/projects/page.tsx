@@ -1,5 +1,55 @@
-export const dynamic = "force-dynamic";
+import type { Metadata } from "next";
 import Link from "next/link";
+import { Rocket, User } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { Navbar } from "@/components/navbar";
-export default async function Projects(){const projects=await prisma.project.findMany({where:{status:{in:["APPROVED","ACTIVE","COMPLETED"]}},include:{owner:{select:{name:true}}},orderBy:{createdAt:"desc"},take:30});return <main className="shell page-wrap"><div className="container"><Navbar/><div style={{padding:"55px 0 25px"}}><div className="kicker">Build something meaningful</div><h1 style={{fontSize:44}}>Student projects.</h1><p className="muted">Explore approved ideas and initiatives from the community.</p></div>{projects.length===0?<div className="panel"><h3>No published projects yet.</h3><p className="muted">When projects are reviewed and approved, they will appear here.</p></div>:<div className="grid4">{projects.map(p=><article className="mechanism" key={p.id}><span className="status">{p.category}</span><h3 style={{marginTop:18}}>{p.title}</h3><p>{p.summary}</p><p className="muted">By {p.owner.name}</p></article>)}</div>}<p style={{marginTop:25}}><Link className="btn btn-ghost" href="/dashboard">Go to dashboard</Link></p></div></main>}
+import { PUBLIC_PROJECT_STATUSES } from "@/lib/projects";
+import { PublicPage } from "@/components/public-page";
+
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Student projects" };
+
+const CATEGORY_ACCENT: Record<string, string> = {
+  Technology: "cyan", Engineering: "cyan", Business: "gold", Education: "purple", Ecology: "pink", "Social Innovation": "pink"
+};
+
+export default async function Projects() {
+  const projects = await prisma.project.findMany({
+    where: { status: { in: [...PUBLIC_PROJECT_STATUSES] } },
+    include: { owner: { select: { name: true } } },
+    orderBy: { createdAt: "desc" },
+    take: 30
+  });
+  return (
+    <PublicPage>
+      <div className="container section">
+        <div className="section-head">
+          <div className="stack">
+            <span className="eyebrow">Build something meaningful</span>
+            <h1 className="h2">Student projects</h1>
+            <p className="muted">Ideas and initiatives from students across Uzbekistan. Every project here was reviewed by a moderator.</p>
+          </div>
+          <Link className="btn btn-primary" href="/projects/new">Submit a project</Link>
+        </div>
+        {projects.length === 0 ? (
+          <div className="empty">
+            <span className="icon-tile accent-pink"><Rocket size={20} aria-hidden="true" /></span>
+            <h2 className="card-title">No published projects yet</h2>
+            <p className="muted">Approved projects will appear here. Be the first — submit yours and a moderator will review it.</p>
+            <Link className="btn btn-primary" href="/projects/new">Submit the first project</Link>
+          </div>
+        ) : (
+          <div className="grid-3">
+            {projects.map((p) => (
+              <article key={p.id} className={`card project-card accent-${CATEGORY_ACCENT[p.category] ?? "purple"}`}>
+                <span className="mechanism-tag">{p.category}</span>
+                <h2 className="card-title">{p.title}</h2>
+                <p>{p.summary}</p>
+                <div className="project-meta"><User size={14} aria-hidden="true" /> {p.owner.name}</div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </PublicPage>
+  );
+}

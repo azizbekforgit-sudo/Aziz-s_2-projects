@@ -1,16 +1,9 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import NextAuth from "next-auth";
+import { authConfig } from "./auth.config";
 
-// Lightweight edge-safe guard: only checks that a valid session token exists.
-// Role checks happen in the pages / API routes themselves (Node runtime).
-export async function middleware(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET, secureCookie: req.nextUrl.protocol === "https:" });
-  if (!token) {
-    const url = new URL("/login", req.url);
-    url.searchParams.set("callbackUrl", req.nextUrl.pathname);
-    return NextResponse.redirect(url);
-  }
-  return NextResponse.next();
-}
+// Same cookie handling as the rest of Auth.js (works behind Render's HTTPS proxy).
+// This only checks that a session exists; account status and role are checked
+// against the database in `requireUser` / `requireRole` (src/lib/session.ts).
+export default NextAuth(authConfig).auth;
 
-export const config = { matcher: ["/dashboard/:path*", "/admin/:path*", "/api/private/:path*"] };
+export const config = { matcher: ["/dashboard/:path*", "/admin/:path*", "/projects/new"] };

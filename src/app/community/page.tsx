@@ -1,2 +1,23 @@
-import Link from "next/link";
-export default function Community(){return <main className="shell page-wrap"><div className="container"><Link href="/dashboard" className="muted">← Dashboard</Link><div className="panel" style={{maxWidth:760,margin:"70px auto"}}><div className="kicker">Connecting minds</div><h1 style={{fontSize:42}}>KNOWLEDGE BRIDGE</h1><p className="muted">Regional communities, peer-to-peer sessions and moderated knowledge library are scheduled for the next implementation phase.</p><span className="status">IN DEVELOPMENT</span></div></div></main>}
+import type { Metadata } from "next";
+import { Network } from "lucide-react";
+import { ComingSoon } from "@/components/coming-soon";
+
+export const metadata: Metadata = { title: "Knowledge Bridge" };
+
+export default function Community() {
+  return (
+    <ComingSoon
+      eyebrow="Connect"
+      title="Knowledge Bridge"
+      description="Learn from peers and share what you know."
+      accent="cyan"
+      icon={<Network size={20} aria-hidden="true" />}
+      features={[
+        "Regional communities that connect students across Uzbekistan.",
+        "Peer-to-peer learning sessions led by students.",
+        "A moderated library of guides and materials."
+      ]}
+      blocker="Posts and file uploads need moderation and safety scanning before they can be opened to students."
+    />
+  );
+}

@@ -1,3 +1,0 @@
-import Link from "next/link";
-import { Brand } from "./brand";
-export function Navbar(){return <header className="nav"><Link href="/"><Brand/></Link><nav className="nav-links"><a href="/#about">About</a><a href="/#mechanisms">Our mechanisms</a><a href="/projects">Projects</a><a href="/opportunities">Opportunities</a></nav><div className="nav-actions"><Link className="btn btn-ghost" href="/login">Sign in</Link><Link className="btn btn-primary" href="/register">Join platform <span>↗</span></Link></div></header>}

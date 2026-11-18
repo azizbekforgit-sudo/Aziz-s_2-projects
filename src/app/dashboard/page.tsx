@@ -1,10 +1,100 @@
-export const dynamic = "force-dynamic";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { auth, signOut } from "@/auth";
-import { redirect } from "next/navigation";
+import { ArrowRight, FolderPlus, Award, Compass, Zap, Users, CheckCircle2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { Brand } from "@/components/brand";
-import { LayoutDashboard, Compass, Rocket, Users, Award, Bell, LogOut, ArrowUpRight } from "lucide-react";
-export default async function Dashboard(){const session=await auth();if(!session?.user?.id)redirect("/login");const user=await prisma.user.findUnique({where:{id:session.user.id},include:{xpTransactions:true,teamMemberships:{include:{team:true}},talentAssessments:{orderBy:{createdAt:"desc"},take:1}}});if(!user)redirect("/login");const xp=user.xpTransactions.reduce((s,x)=>s+x.points,0);
-return <main className="shell page-wrap"><div className="container"><header className="nav"><Link href="/"><Brand/></Link><div className="nav-actions"><span className="muted" style={{fontSize:12}}>{user.name} · {user.role}</span><form action={async()=>{"use server";await signOut({redirectTo:"/"})}}><button className="btn btn-ghost"><LogOut size={14}/> Sign out</button></form></div></header><div style={{padding:"34px 0 20px"}}><div className="kicker">Your personal space</div><h1 style={{fontSize:38,letterSpacing:-1.5,margin:"8px 0"}}>Good to see you, {user.name.split(" ")[0]}.</h1><p className="muted">Your journey is yours to shape. Take the next step.</p></div><div className="dashboard-grid"><aside className="panel"><div className="side-nav"><a className="active"><LayoutDashboard size={15} style={{display:"inline",marginRight:9}}/>Overview</a><a href="/talent-map"><Compass size={15} style={{display:"inline",marginRight:9}}/>Talent Map</a><a href="/projects"><Rocket size={15} style={{display:"inline",marginRight:9}}/>Projects</a><a href="/community"><Users size={15} style={{display:"inline",marginRight:9}}/>Knowledge Bridge</a><a href="/opportunities"><Award size={15} style={{display:"inline",marginRight:9}}/>Opportunities</a></div><div style={{marginTop:35,padding:14,borderRadius:14,background:"#9b5cff12"}}><div className="kicker">Account status</div><p style={{fontSize:13,marginBottom:4}}>{user.status}</p><span className="muted" style={{fontSize:11}}>Your account access is controlled by platform administrators.</span></div></aside><section style={{display:"grid",gap:18}}><div className="stat-grid"><div className="stat"><small>XP earned</small><strong>{xp}</strong></div><div className="stat"><small>Team memberships</small><strong>{user.teamMemberships.length}</strong></div><div className="stat"><small>Talent assessments</small><strong>{user.talentAssessments.length}</strong></div><div className="stat"><small>Profile verification</small><strong style={{fontSize:16,marginTop:16}}>{user.verification}</strong></div></div><div className="panel"><div className="section-head" style={{marginBottom:12}}><div><div className="kicker">Your next step</div><h2 style={{fontSize:25}}>Discover your strengths.</h2></div><Compass size={28} color="#c49aff"/></div><p className="muted">Talent Map helps you explore eight competency areas and build a development direction. Assessment methodology is awaiting formal approval; this module will remain unavailable until its scoring rules are approved.</p><span className="status">IN DEVELOPMENT</span></div><div className="panel"><div className="section-head"><div><div className="kicker">Explore the ecosystem</div><h2 style={{fontSize:25}}>Find your place to contribute.</h2></div></div><div className="grid4">{[{t:"Projects",d:"Explore approved student initiatives",href:"/projects"},{t:"Opportunities",d:"Find ways to grow and participate",href:"/opportunities"},{t:"Community",d:"Connect through shared learning",href:"/community"},{t:"Mentorship",d:"Learn with guidance and support",href:"/mentorship"}].map(x=><Link href={x.href} className="mechanism" key={x.t} style={{minHeight:140}}><h3>{x.t} <ArrowUpRight size={14}/></h3><p>{x.d}</p></Link>)}</div></div></section></div></div></main>
+import { requireUser } from "@/lib/session";
+import { firstName, formatDate } from "@/lib/format";
+import { AppShell, PageHeader } from "@/components/app-shell";
+import { StatusBadge } from "@/components/status-badge";
+
+export const metadata: Metadata = { title: "Dashboard" };
+
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ submitted?: string }> }) {
+  const user = await requireUser();
+  const [{ submitted }, projects, xp, teams] = await Promise.all([
+    searchParams,
+    prisma.project.findMany({ where: { ownerId: user.id }, orderBy: { createdAt: "desc" }, take: 10 }),
+    prisma.xpTransaction.aggregate({ where: { userId: user.id, verified: true }, _sum: { points: true } }),
+    prisma.teamMember.count({ where: { userId: user.id } })
+  ]);
+
+  return (
+    <AppShell user={user}>
+      <PageHeader
+        eyebrow="Your personal space"
+        title={`Good to see you, ${firstName(user.name)}.`}
+        description="Your journey is yours to shape. Here is where you are and what you can do next."
+        action={<Link href="/projects/new" className="btn btn-primary"><FolderPlus size={16} aria-hidden="true" /> Submit a project</Link>}
+      />
+
+      <div className="stack-lg">
+        {submitted === "project" && (
+          <div className="alert alert-success" role="status">
+            <CheckCircle2 size={18} aria-hidden="true" />
+            <span><strong>Project submitted.</strong> A moderator will review it. Once approved it appears on the public projects page.</span>
+          </div>
+        )}
+
+        <div className="grid-4">
+          <div className="stat"><span className="stat-label"><FolderPlus size={16} aria-hidden="true" /> Projects</span><span className="stat-value">{projects.length}</span></div>
+          <div className="stat"><span className="stat-label"><Zap size={16} aria-hidden="true" /> Verified XP</span><span className="stat-value">{xp._sum.points ?? 0}</span></div>
+          <div className="stat"><span className="stat-label"><Users size={16} aria-hidden="true" /> Teams</span><span className="stat-value">{teams}</span></div>
+          <div className="stat"><span className="stat-label">Profile</span><StatusBadge status={user.verification} /></div>
+        </div>
+
+        <section className="card card-pad-lg" aria-labelledby="my-projects">
+          <div className="card-title-row">
+            <div className="stack-sm">
+              <h2 id="my-projects" className="h3">My projects</h2>
+              <p className="subtle">Every project is reviewed before it becomes public.</p>
+            </div>
+          </div>
+          {projects.length === 0 ? (
+            <div className="empty mt-5">
+              <span className="icon-tile accent-pink"><FolderPlus size={20} aria-hidden="true" /></span>
+              <h3 className="card-title">You haven’t submitted a project yet</h3>
+              <p className="muted">Got an idea to improve your school, city or community? Describe the problem and how you would solve it.</p>
+              <Link href="/projects/new" className="btn btn-primary">Submit your first project</Link>
+            </div>
+          ) : (
+            <ul className="list mt-4">
+              {projects.map((p) => (
+                <li key={p.id} className="list-item">
+                  <div className="list-item-main">
+                    <span className="list-item-title">{p.title}</span>
+                    <span className="subtle">{p.category} · submitted {formatDate(p.createdAt)}</span>
+                  </div>
+                  <StatusBadge status={p.status} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section aria-labelledby="explore">
+          <h2 id="explore" className="h3 mb-4">Explore</h2>
+          <div className="grid-3">
+            <Link href="/opportunities" className="card card-link stack accent-gold">
+              <span className="icon-tile"><Award size={20} aria-hidden="true" /></span>
+              <h3 className="card-title">Opportunities</h3>
+              <p className="subtle">Competitions, scholarships and programmes reviewed by the platform.</p>
+              <span className="text-link">Browse <ArrowRight size={14} aria-hidden="true" /></span>
+            </Link>
+            <Link href="/projects" className="card card-link stack accent-pink">
+              <span className="icon-tile"><FolderPlus size={20} aria-hidden="true" /></span>
+              <h3 className="card-title">Student projects</h3>
+              <p className="subtle">See what other students are building and get inspired.</p>
+              <span className="text-link">Explore <ArrowRight size={14} aria-hidden="true" /></span>
+            </Link>
+            <Link href="/talent-map" className="card card-link stack accent-purple">
+              <span className="icon-tile"><Compass size={20} aria-hidden="true" /></span>
+              <h3 className="card-title">Talent Map</h3>
+              <p className="subtle">Discover your strengths across eight competency areas. Coming soon.</p>
+              <span className="text-link">Learn more <ArrowRight size={14} aria-hidden="true" /></span>
+            </Link>
+          </div>
+        </section>
+      </div>
+    </AppShell>
+  );
 }
