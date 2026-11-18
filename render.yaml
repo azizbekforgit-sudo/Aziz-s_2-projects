@@ -11,7 +11,7 @@ services:
   - type: web
     name: talent-to-impact
     runtime: node
-    plan: free
+    plan: starter
     region: frankfurt
     branch: claude/wonderful-archimedes-busje5
     buildCommand: npm ci && npm run build
