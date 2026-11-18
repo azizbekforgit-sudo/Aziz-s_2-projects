@@ -1,0 +1,33 @@
+databases:
+  - name: talent-to-impact-db
+    plan: basic-256mb
+    region: frankfurt
+    postgresMajorVersion: "16"
+    diskSizeGB: 1
+    databaseName: talent_to_impact_db
+    user: talent_to_impact_db_user
+
+services:
+  - type: web
+    name: talent-to-impact
+    runtime: node
+    plan: free
+    region: frankfurt
+    branch: claude/wonderful-archimedes-busje5
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: talent-to-impact-db
+          property: connectionString
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: AUTH_TRUST_HOST
+        value: "true"
+      - key: SEED_ADMIN_EMAIL
+        value: admin@talenttoimpact.uz
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
