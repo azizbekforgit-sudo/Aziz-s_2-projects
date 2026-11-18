@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getActiveUser } from "@/lib/session";
 import { projectSchema, fieldErrors } from "@/lib/validators";
 import { PUBLIC_PROJECT_STATUSES } from "@/lib/projects";
+import { getDict } from "@/i18n/server";
 
 export async function GET() {
   const projects = await prisma.project.findMany({
@@ -15,11 +16,13 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const t = await getDict();
   const user = await getActiveUser();
-  if (!user) return NextResponse.json({ error: "Sign in to submit a project." }, { status: 401 });
+  if (!user) return NextResponse.json({ error: t.errors.signInRequired }, { status: 401 });
   const parsed = projectSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
-    const errors = fieldErrors(parsed.error);
+    const keys = fieldErrors(parsed.error);
+    const errors = Object.fromEntries(Object.entries(keys).map(([f, k]) => [f, t.errors[k]]));
     return NextResponse.json({ error: Object.values(errors)[0], errors }, { status: 400 });
   }
   const project = await prisma.project.create({ data: { ...parsed.data, ownerId: user.id, status: "PENDING_REVIEW" } });

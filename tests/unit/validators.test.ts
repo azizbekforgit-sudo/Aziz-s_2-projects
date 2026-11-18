@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { registerSchema, projectSchema, loginSchema, fieldErrors } from "@/lib/validators";
+import ru from "@/i18n/ru";
+import uz from "@/i18n/uz";
 
 const validStudent = { name: "Aziza Karimova", email: "  Aziza@Example.COM ", password: "longenough1", grade: "9", preferredLang: "ru" };
 
@@ -17,12 +19,15 @@ describe("registerSchema", () => {
   });
 
   it.each([
-    ["password", { password: "short" }, "Password must be at least 10 characters."],
-    ["grade", { grade: "" }, "Choose your grade (7–11)."],
-    ["grade", { grade: "12" }, "Choose your grade (7–11)."],
-    ["email", { email: "nope" }, "Enter a valid email address."],
-    ["name", { name: "A" }, "Name must be at least 2 characters."]
-  ])("rejects bad %s with a human message", (field, patch, message) => {
+    ["password", { password: "short" }, "passwordMin"],
+    ["password", { password: "" }, "passwordRequired"],
+    ["grade", { grade: "" }, "gradeRequired"],
+    ["grade", { grade: "12" }, "gradeRequired"],
+    ["email", { email: "nope" }, "emailInvalid"],
+    ["email", { email: "" }, "emailRequired"],
+    ["name", { name: "" }, "nameRequired"],
+    ["name", { name: "A" }, "nameMin"]
+  ])("rejects bad %s with a translatable error key", (field, patch, message) => {
     const r = registerSchema.safeParse({ ...validStudent, ...patch });
     expect(r.success).toBe(false);
     if (!r.success) expect(fieldErrors(r.error)[field]).toBe(message);
@@ -46,5 +51,21 @@ describe("projectSchema", () => {
 describe("loginSchema", () => {
   it("lower-cases email so login is case-insensitive", () => {
     expect(loginSchema.parse({ email: "Admin@Site.UZ", password: "x" }).email).toBe("admin@site.uz");
+  });
+});
+
+describe("error keys", () => {
+  it("every key a schema can produce exists in both dictionaries", () => {
+    const keys = new Set<string>();
+    for (const bad of [{}, { name: "A", email: "x", password: "1", grade: "99" }]) {
+      const r = registerSchema.safeParse(bad);
+      if (!r.success) Object.values(fieldErrors(r.error)).forEach((k) => keys.add(k));
+    }
+    const p = projectSchema.safeParse({ title: "a", summary: "b", category: "x", problemStatement: "z".repeat(4000) });
+    if (!p.success) Object.values(fieldErrors(p.error)).forEach((k) => keys.add(k));
+    for (const k of keys) {
+      expect(ru.errors).toHaveProperty(k);
+      expect(uz.errors).toHaveProperty(k);
+    }
   });
 });

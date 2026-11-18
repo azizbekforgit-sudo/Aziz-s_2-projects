@@ -1,18 +1,22 @@
 "use client";
 import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
+import { useI18n } from "@/i18n/client";
+import type { ErrorKey } from "@/lib/validators";
 
-type Common = { name: string; label: string; error?: string; hint?: string };
+type Common = { name: string; label: string; error?: ErrorKey; hint?: string };
 
 function describedBy(name: string, error?: string, hint?: string) {
   return [error && `${name}-error`, hint && `${name}-hint`].filter(Boolean).join(" ") || undefined;
 }
 
-function Meta({ name, error, hint }: { name: string; error?: string; hint?: string }) {
+/** Hint under the field, replaced by the translated error when validation fails. */
+function Meta({ name, error, hint }: { name: string; error?: ErrorKey; hint?: string }) {
+  const { t } = useI18n();
   return (
     <>
       {hint && !error && <span id={`${name}-hint`} className="field-hint">{hint}</span>}
-      {error && <span id={`${name}-error`} className="field-error" role="alert">{error}</span>}
+      {error && <span id={`${name}-error`} className="field-error" role="alert">{t.errors[error] ?? t.errors.generic}</span>}
     </>
   );
 }

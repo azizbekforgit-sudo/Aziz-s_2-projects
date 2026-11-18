@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/session";
+import { getDict } from "@/i18n/server";
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { ProjectForm } from "./project-form";
 
-export const metadata: Metadata = { title: "Submit a project" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getDict()).meta.newProject };
+}
 
 export default async function NewProject() {
-  const user = await requireUser();
+  const [user, t] = await Promise.all([requireUser(), getDict()]);
   return (
     <AppShell user={user}>
-      <PageHeader eyebrow="School Hack · Create" title="Submit a project" description="Describe a real problem and how you would solve it. A moderator reviews every project before it is published." />
+      <div className="accent-pink">
+        <PageHeader eyebrow={t.newProject.eyebrow} title={t.newProject.title} description={t.newProject.lead} />
+      </div>
       <div className="card card-pad-lg">
         <ProjectForm />
       </div>

@@ -3,7 +3,7 @@ import { AuthError } from "next-auth";
 import { headers } from "next/headers";
 import { signIn } from "@/auth";
 
-export type LoginState = { error?: string; email?: string };
+export type LoginState = { error?: "invalid" | "inactive"; email?: string };
 
 /**
  * Only allow redirects back to our own site (prevents open-redirect via ?callbackUrl=https://evil).
@@ -35,9 +35,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     // signIn() throws a redirect on success — it must be re-thrown, not swallowed.
     if (e instanceof AuthError) {
       const code = (e as AuthError & { code?: string }).code;
-      if (code === "inactive")
-        return { email, error: "Your account isn’t active yet. An administrator needs to approve it first." };
-      return { email, error: "Incorrect email or password." };
+      return { email, error: code === "inactive" ? "inactive" : "invalid" };
     }
     throw e;
   }

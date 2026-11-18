@@ -1,23 +1,23 @@
 import type { Metadata } from "next";
+import { Info } from "lucide-react";
 import { AuthLayout } from "@/components/auth-layout";
+import { getDict } from "@/i18n/server";
 import { LoginForm } from "./login-form";
 
-export const metadata: Metadata = { title: "Sign in" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getDict()).meta.login };
+}
 
-const QUERY_MESSAGES: Record<string, string> = {
-  inactive: "Your account isn’t active. If you just registered, wait for an administrator to approve it."
-};
-
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; callbackUrl?: string; registered?: string }> }) {
-  const sp = await searchParams;
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; callbackUrl?: string }> }) {
+  const [sp, t] = await Promise.all([searchParams, getDict()]);
   return (
     <AuthLayout>
       <div className="auth-card-head">
-        <span className="eyebrow">Welcome back</span>
-        <h1 className="h2">Sign in to your space</h1>
-        <p className="muted">Continue your journey from potential to impact.</p>
+        <span className="eyebrow">{t.login.eyebrow}</span>
+        <h1 className="h2">{t.login.title}</h1>
+        <p className="muted">{t.login.lead}</p>
       </div>
-      {sp.error && QUERY_MESSAGES[sp.error] && <div className="alert alert-info" role="status">{QUERY_MESSAGES[sp.error]}</div>}
+      {sp.error === "inactive" && <div className="alert alert-info" role="status"><Info size={18} aria-hidden="true" /><span>{t.login.inactiveQuery}</span></div>}
       <LoginForm callbackUrl={sp.callbackUrl} />
     </AuthLayout>
   );

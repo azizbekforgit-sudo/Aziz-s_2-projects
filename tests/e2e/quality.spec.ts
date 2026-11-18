@@ -1,17 +1,20 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import uz from "../../src/i18n/uz";
 
 const PUBLIC_PAGES = ["/", "/login", "/register", "/projects", "/opportunities"];
 
-for (const path of PUBLIC_PAGES) {
-  test(`a11y: ${path} has no serious accessibility violations`, async ({ page }) => {
+for (const lang of ["uz", "ru"]) for (const path of PUBLIC_PAGES) {
+  test(`a11y [${lang}]: ${path} has no serious accessibility violations`, async ({ page, context, baseURL }) => {
+    await context.addCookies([{ name: "lang", value: lang, url: baseURL! }]);
     await page.goto(path);
     const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
     const serious = violations.filter((v) => v.impact === "serious" || v.impact === "critical");
     expect(serious.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
   });
 
-  test(`mobile: ${path} does not scroll sideways at 375px`, async ({ page }) => {
+  test(`mobile [${lang}]: ${path} does not scroll sideways at 375px`, async ({ page, context, baseURL }) => {
+    await context.addCookies([{ name: "lang", value: lang, url: baseURL! }]);
     await page.setViewportSize({ width: 375, height: 800 });
     await page.goto(path);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -22,8 +25,8 @@ for (const path of PUBLIC_PAGES) {
 test("mobile menu opens and links work", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto("/");
-  await page.getByLabel("Open menu").click();
-  await page.locator(".mobile-menu-panel").getByRole("link", { name: "Projects" }).click();
+  await page.locator(".mobile-menu > summary").click();
+  await page.locator(".mobile-menu-panel").getByRole("link", { name: uz.nav.projects }).click();
   await expect(page).toHaveURL("/projects");
 });
 

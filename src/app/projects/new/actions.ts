@@ -2,9 +2,9 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { projectSchema, fieldErrors } from "@/lib/validators";
+import { projectSchema, fieldErrors, type ErrorKey } from "@/lib/validators";
 
-export type ProjectState = { errors?: Record<string, string>; values?: Record<string, string> };
+export type ProjectState = { errors?: Record<string, ErrorKey>; values?: Record<string, string> };
 
 export async function createProjectAction(_prev: ProjectState, formData: FormData): Promise<ProjectState> {
   const user = await requireUser();
