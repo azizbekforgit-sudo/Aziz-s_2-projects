@@ -1,0 +1,7 @@
+import Link from "next/link";
+import { signIn } from "@/auth";
+import { redirect } from "next/navigation";
+export default function Login({searchParams}:{searchParams:Promise<{error?:string}>}){
+ async function login(formData:FormData){ "use server"; try{await signIn("credentials",{email:formData.get("email"),password:formData.get("password"),redirectTo:"/dashboard"});}catch(e:any){if(e?.digest?.startsWith("NEXT_REDIRECT"))throw e;redirect("/login?error=invalid");}}
+ return <main className="shell page-wrap"><div className="container"><Link href="/" className="muted">← Back to home</Link><div style={{maxWidth:500,margin:"65px auto"}} className="panel"><div className="kicker">Welcome back</div><h1 style={{fontSize:38,letterSpacing:-1.5}}>Sign in to your space.</h1><p className="muted">Continue your journey from potential to impact.</p><form action={login} className="form-stack"><label className="label">Email<input className="field" name="email" type="email" required/></label><label className="label">Password<input className="field" name="password" type="password" required/></label><button className="btn btn-primary" type="submit">Sign in →</button></form><p className="muted" style={{fontSize:12}}>New to the platform? <Link href="/register" style={{color:"#c59aff"}}>Create an account</Link></p></div></div></main>
+}

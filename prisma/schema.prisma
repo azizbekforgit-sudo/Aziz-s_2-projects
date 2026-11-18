@@ -1,0 +1,308 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  MENTOR
+  TEACHER
+  REGIONAL_COORDINATOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+enum ProjectStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  ACTIVE
+  COMPLETED
+  REJECTED
+  ARCHIVED
+}
+enum ContentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  UNDER_REVIEW
+  HIDDEN
+  ARCHIVED
+}
+enum HackathonStatus {
+  DRAFT
+  REGISTRATION_OPEN
+  REGISTRATION_CLOSED
+  ACTIVE
+  JUDGING
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id             String        @id @default(cuid())
+  name           String
+  email          String        @unique
+  passwordHash   String
+  role           Role          @default(STUDENT)
+  status         AccountStatus @default(PENDING)
+  verification   VerificationStatus @default(UNVERIFIED)
+  preferredLang  String        @default("uz")
+  regionId       String?
+  schoolId       String?
+  grade          Int?
+  bio            String?       @db.Text
+  interests      String[]      @default([])
+  isProfilePublic Boolean      @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  region         Region?       @relation(fields: [regionId], references: [id])
+  school         School?       @relation(fields: [schoolId], references: [id])
+  talentAssessments TalentAssessment[]
+  projects       Project[]     @relation("ProjectOwner")
+  teamMemberships TeamMember[]
+  savedOpportunities SavedOpportunity[]
+  notifications Notification[]
+  xpTransactions XpTransaction[]
+  auditLogs      AuditLog[]    @relation("Actor")
+  mentorRequestsSent MentorshipRequest[] @relation("Mentee")
+  mentorRequestsReceived MentorshipRequest[] @relation("Mentor")
+}
+
+model Region {
+  id String @id @default(cuid())
+  nameUz String
+  nameRu String
+  nameEn String
+  isActive Boolean @default(true)
+  users User[]
+  schools School[]
+  districts District[]
+  createdAt DateTime @default(now())
+}
+
+model District {
+  id String @id @default(cuid())
+  nameUz String
+  nameRu String
+  nameEn String
+  regionId String
+  region Region @relation(fields: [regionId], references: [id])
+  schools School[]
+  @@index([regionId])
+}
+
+model School {
+  id String @id @default(cuid())
+  name String
+  code String? @unique
+  regionId String
+  districtId String?
+  region Region @relation(fields: [regionId], references: [id])
+  district District? @relation(fields: [districtId], references: [id])
+  users User[]
+  createdAt DateTime @default(now())
+  @@index([regionId])
+}
+
+model Competency {
+  id String @id @default(cuid())
+  key String @unique
+  nameUz String
+  nameRu String
+  nameEn String
+  assessments CompetencyScore[]
+}
+
+model TalentQuestion {
+  id String @id @default(cuid())
+  promptUz String
+  promptRu String
+  promptEn String
+  competencyKey String
+  isActive Boolean @default(true)
+  sortOrder Int @default(0)
+  options TalentQuestionOption[]
+  answers TalentAnswer[]
+}
+
+model TalentQuestionOption {
+  id String @id @default(cuid())
+  questionId String
+  labelUz String
+  labelRu String
+  labelEn String
+  score Int
+  question TalentQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model TalentAssessment {
+  id String @id @default(cuid())
+  userId String
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers TalentAnswer[]
+  scores CompetencyScore[]
+  @@index([userId, createdAt])
+}
+
+model TalentAnswer {
+  id String @id @default(cuid())
+  assessmentId String
+  questionId String
+  optionId String
+  assessment TalentAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  question TalentQuestion @relation(fields: [questionId], references: [id])
+  @@unique([assessmentId, questionId])
+}
+
+model CompetencyScore {
+  id String @id @default(cuid())
+  assessmentId String
+  competencyId String
+  score Float
+  assessment TalentAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  competency Competency @relation(fields: [competencyId], references: [id])
+  @@unique([assessmentId, competencyId])
+}
+
+model Hackathon {
+  id String @id @default(cuid())
+  title String
+  description String @db.Text
+  category String
+  status HackathonStatus @default(DRAFT)
+  registrationOpensAt DateTime?
+  registrationClosesAt DateTime?
+  sprintStartsAt DateTime?
+  sprintEndsAt DateTime?
+  minTeamSize Int @default(3)
+  maxTeamSize Int @default(5)
+  createdAt DateTime @default(now())
+  teams Team[]
+}
+
+model Team {
+  id String @id @default(cuid())
+  name String
+  hackathonId String?
+  hackathon Hackathon? @relation(fields: [hackathonId], references: [id])
+  members TeamMember[]
+  projects Project[]
+  createdAt DateTime @default(now())
+}
+
+model TeamMember {
+  id String @id @default(cuid())
+  teamId String
+  userId String
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([teamId, userId])
+}
+
+model Project {
+  id String @id @default(cuid())
+  title String
+  summary String
+  problemStatement String? @db.Text
+  proposedSolution String? @db.Text
+  category String
+  status ProjectStatus @default(DRAFT)
+  ownerId String
+  teamId String?
+  owner User @relation("ProjectOwner", fields: [ownerId], references: [id])
+  team Team? @relation(fields: [teamId], references: [id])
+  githubUrl String?
+  demoUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, createdAt])
+}
+
+model Opportunity {
+  id String @id @default(cuid())
+  title String
+  description String @db.Text
+  category String
+  organizer String
+  deadline DateTime?
+  eligibility String? @db.Text
+  officialUrl String?
+  language String @default("uz")
+  status ContentStatus @default(PENDING)
+  createdAt DateTime @default(now())
+}
+
+model SavedOpportunity {
+  id String @id @default(cuid())
+  userId String
+  opportunityId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, opportunityId])
+}
+
+model MentorshipRequest {
+  id String @id @default(cuid())
+  menteeId String
+  mentorId String
+  message String @db.Text
+  status String @default("PENDING")
+  createdAt DateTime @default(now())
+  mentee User @relation("Mentee", fields: [menteeId], references: [id])
+  mentor User @relation("Mentor", fields: [mentorId], references: [id])
+  @@index([mentorId, status])
+}
+
+model Notification {
+  id String @id @default(cuid())
+  userId String
+  title String
+  body String
+  readAt DateTime?
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, readAt])
+}
+
+model XpTransaction {
+  id String @id @default(cuid())
+  userId String
+  points Int
+  reason String
+  referenceKey String @unique
+  verified Boolean @default(false)
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+  actorId String?
+  action String
+  entityType String
+  entityId String
+  oldValue Json?
+  newValue Json?
+  result String @default("SUCCESS")
+  createdAt DateTime @default(now())
+  actor User? @relation("Actor", fields: [actorId], references: [id])
+  @@index([createdAt, entityType])
+}

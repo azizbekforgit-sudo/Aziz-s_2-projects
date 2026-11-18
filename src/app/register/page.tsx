@@ -1,0 +1,3 @@
+import Link from "next/link";
+import { RegisterForm } from "@/components/register-form";
+export default function Register(){return <main className="shell page-wrap"><div className="container"><Link href="/" className="muted">← Back to home</Link><div style={{maxWidth:560,margin:"45px auto"}} className="panel"><div className="kicker">Start your journey</div><h1 style={{fontSize:38,letterSpacing:-1.5}}>Create your account.</h1><p className="muted">Student accounts are created with a pending status and activated after review.</p><RegisterForm/><p className="muted" style={{fontSize:12}}>Already registered? <Link href="/login" style={{color:"#c59aff"}}>Sign in</Link></p></div></div></main>}

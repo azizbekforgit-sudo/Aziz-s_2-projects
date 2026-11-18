@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function Community(){return <main className="shell page-wrap"><div className="container"><Link href="/dashboard" className="muted">← Dashboard</Link><div className="panel" style={{maxWidth:760,margin:"70px auto"}}><div className="kicker">Connecting minds</div><h1 style={{fontSize:42}}>KNOWLEDGE BRIDGE</h1><p className="muted">Regional communities, peer-to-peer sessions and moderated knowledge library are scheduled for the next implementation phase.</p><span className="status">IN DEVELOPMENT</span></div></div></main>}
