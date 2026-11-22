@@ -101,6 +101,7 @@ const uz: Dict = {
     pending: "Akkaunt hali tasdiqlanmagan. Koordinator yangi arizalarni tekshiradi, odatda bu bir-ikki kun oladi.",
     blocked: "Ariza rad etilgan yoki akkaunt oʻchirilgan. Maktabing koordinatoriga murojaat qil.",
     tooMany: "Muvaffaqiyatsiz urinishlar juda koʻp. 15 daqiqadan soʻng qayta urinib koʻr.",
+    sessionEnded: "Sessiya yakunlandi: akkaunt endi faol emas. Qayta kir yoki yangi akkaunt yarat.",
     inactiveQuery: "Akkaunt faol emas. Agar hozirgina roʻyxatdan oʻtgan boʻlsang — koordinator tasdiqlashini kut."
   },
   register: {

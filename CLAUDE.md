@@ -8,6 +8,7 @@ Next.js 15 App Router · React 19 · TypeScript strict · Prisma 6 + PostgreSQL 
 ## Rules (each one exists because it broke before)
 - **Layers:** pages in `src/app` → logic in `src/lib` → Prisma. Components in `src/components` only render.
 - **Access control:** protected pages and every server action call `requireUser()` / `requireRole()` from `src/lib/session.ts` (reads the DB). Never trust `session.user.role` from the JWT. Role lists live only in `src/lib/roles.ts`.
+- **Stale sessions:** if the session points to a deleted/inactive account, `requireUser()` sends to `/session-ended` (clears the cookie). `/login` and `/register` redirect only real active users (`getActiveUser()`). Never redirect between auth pages based on the JWT alone — that caused an infinite redirect loop.
 - **Edge safety:** `src/middleware.ts` and `src/auth.config.ts` must not import Prisma, bcrypt or `@/auth`.
 - **Text / i18n:** no user-facing strings in components. Add the key to `src/i18n/ru.ts` (source of truth), then `uz.ts` (TS forces it). Server: `await getDict()`; client: `useI18n()`. Default language is Uzbek (cookie `lang`).
 - **Validation:** all form rules live in `src/lib/validators.ts`; errors are keys of `errors.*` in the dictionaries. API routes and server actions share them.

@@ -13,9 +13,18 @@ export async function requireUser() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-  if (!user) redirect("/login");
-  if (user.status !== "ACTIVE") redirect("/login?error=inactive");
+  // Stale session (account deleted or disabled): end it instead of bouncing between pages.
+  if (!user) redirect("/session-ended");
+  if (user.status !== "ACTIVE") redirect("/session-ended?reason=inactive");
   return user;
+}
+
+/** The signed-in user if the session belongs to an existing, active account — otherwise null. Never redirects. */
+export async function getActiveUser() {
+  const session = await auth();
+  if (!session?.user?.id) return null;
+  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+  return user?.status === "ACTIVE" ? user : null;
 }
 
 export async function requireRole(allowed: readonly Role[]) {

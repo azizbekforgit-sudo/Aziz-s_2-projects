@@ -220,3 +220,17 @@ test("@live HTML is never cached by the browser", async ({ page }) => {
   const res = await page.goto("/register");
   expect(res?.headers()["cache-control"]).toContain("no-store");
 });
+
+test("a session of a deleted account does not loop: it is cleared and sign-up works", async ({ page, context, baseURL }) => {
+  // Forge a valid session cookie for an account that does not exist (like a user removed from the database).
+  const { encode } = await import("next-auth/jwt");
+  const token = await encode({ token: { sub: "deleted-user", uid: "deleted-user", role: "STUDENT", name: "Ghost" }, secret: process.env.AUTH_SECRET!, salt: "authjs.session-token" });
+  await context.addCookies([{ name: "authjs.session-token", value: token, url: baseURL! }]);
+
+  await page.goto("/dashboard");
+  await expect(page).toHaveURL(/\/login\?error=session/);
+  await expect(page.locator(".notice")).toHaveText(t.login.sessionEnded);
+
+  await page.goto("/register");
+  await expect(page.getByRole("heading", { name: t.register.title })).toBeVisible();
+});

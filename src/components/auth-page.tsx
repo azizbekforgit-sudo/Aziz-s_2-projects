@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { getActiveUser } from "@/lib/session";
 import { getDict } from "@/i18n/server";
 import { Logo } from "./logo";
 import { LanguageSwitcher } from "./language-switcher";
@@ -9,8 +9,9 @@ import { Contours } from "./graphics";
 
 /** Sign-in / sign-up: form on the left, a paper composition on the right (desktop only). */
 export async function AuthPage({ children, artTitle, artText }: { children: React.ReactNode; artTitle: string; artText: string }) {
-  const [session, t] = await Promise.all([auth(), getDict()]);
-  if (session?.user) redirect("/dashboard");
+  // Only a real, active account is sent on; a stale cookie must not block sign-in or registration.
+  const [user, t] = await Promise.all([getActiveUser(), getDict()]);
+  if (user) redirect("/dashboard");
   const s = t.home.sample;
   return (
     <div className="page">

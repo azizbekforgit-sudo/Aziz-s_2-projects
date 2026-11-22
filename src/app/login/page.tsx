@@ -16,7 +16,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <h1 className="h1">{t.login.title}</h1>
         <p className="muted">{t.login.lead}</p>
       </div>
-      {sp.error === "inactive" && <p className="notice notice-info" role="status"><Info size={18} strokeWidth={1.8} aria-hidden="true" />{t.login.inactiveQuery}</p>}
+      {(sp.error === "inactive" || sp.error === "session") && (
+        <p className="notice notice-info" role="status"><Info size={18} strokeWidth={1.8} aria-hidden="true" />{sp.error === "inactive" ? t.login.inactiveQuery : t.login.sessionEnded}</p>
+      )}
       <LoginForm callbackUrl={sp.callbackUrl} />
     </AuthPage>
   );

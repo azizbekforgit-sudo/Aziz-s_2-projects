@@ -130,7 +130,7 @@ flowchart TD
   B -- нет --> L[/login?callbackUrl=…/]
   B -- да --> C[страница вызывает requireUser]
   C --> D{пользователь в базе<br/>и status=ACTIVE?}
-  D -- нет --> L2[/login?error=inactive/]
+  D -- нет --> L2[/session-ended → стирает cookie → /login?error=…/]
   D -- да --> E{нужна роль?<br/>requireRole}
   E -- нет прав --> F[/dashboard/]
   E -- ок --> G[страница]
