@@ -71,6 +71,7 @@ model User {
   regionId               String?
   schoolId               String?
   grade                  Int?
+  schoolName             String?
   bio                    String?             @db.Text
   interests              String[]            @default([])
   isProfilePublic        Boolean             @default(false)
@@ -240,6 +241,7 @@ model Project {
   teamId           String?
   owner            User          @relation("ProjectOwner", fields: [ownerId], references: [id])
   team             Team?         @relation(fields: [teamId], references: [id])
+  reviewNote       String?       @db.Text
   githubUrl        String?
   demoUrl          String?
   createdAt        DateTime      @default(now())

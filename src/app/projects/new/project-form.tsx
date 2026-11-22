@@ -11,6 +11,7 @@ export function ProjectForm() {
   const [state, action] = useActionState<ProjectState, FormData>(createProjectAction, {});
   const e = state.errors ?? {};
   const v = state.values ?? {};
+  const optional = (label: string) => <>{label} <span className="meta">· {n.optional}</span></>;
   return (
     <form action={action} className="form" noValidate key={JSON.stringify(v)}>
       <div className="grid-2">
@@ -21,10 +22,10 @@ export function ProjectForm() {
         </SelectField>
       </div>
       <TextArea name="summary" label={n.summary} required maxLength={500} rows={3} defaultValue={v.summary} error={e.summary} hint={n.summaryHint} />
-      <TextArea name="problemStatement" label={n.problem} maxLength={3000} rows={5} defaultValue={v.problemStatement} error={e.problemStatement} />
-      <TextArea name="proposedSolution" label={n.solution} maxLength={3000} rows={5} defaultValue={v.proposedSolution} error={e.proposedSolution} />
+      <TextArea name="problemStatement" label={optional(n.problem)} maxLength={3000} rows={5} defaultValue={v.problemStatement} error={e.problemStatement} hint={n.problemHint} />
+      <TextArea name="proposedSolution" label={optional(n.solution)} maxLength={3000} rows={5} defaultValue={v.proposedSolution} error={e.proposedSolution} hint={n.solutionHint} />
       <div className="row">
-        <SubmitButton pendingText={n.pending} className="btn btn-primary btn-lg">{n.submit}</SubmitButton>
+        <SubmitButton pendingText={n.submitting} className="btn btn-primary btn-lg">{n.submit}</SubmitButton>
       </div>
     </form>
   );

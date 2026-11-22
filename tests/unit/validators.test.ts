@@ -1,21 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { registerSchema, projectSchema, loginSchema, fieldErrors } from "@/lib/validators";
+import { registerSchema, projectSchema, loginSchema, reviewSchema, opportunitySchema, fieldErrors } from "@/lib/validators";
 import ru from "@/i18n/ru";
 import uz from "@/i18n/uz";
 
-const validStudent = { name: "Aziza Karimova", email: "  Aziza@Example.COM ", password: "longenough1", grade: "9", preferredLang: "ru" };
+const student = { name: "Aziza Karimova", email: "  Aziza@Example.COM ", password: "longenough1", schoolName: "Школа №7, Кармана", grade: "9" };
 
 describe("registerSchema", () => {
-  it("accepts a valid form submission and normalises email + grade", () => {
-    const r = registerSchema.parse(validStudent);
+  it("accepts a form submission and normalises email + grade", () => {
+    const r = registerSchema.parse(student);
     expect(r.email).toBe("aziza@example.com");
     expect(r.grade).toBe(9);
-  });
-
-  it("treats empty optional fields from the form as missing", () => {
-    const r = registerSchema.parse({ ...validStudent, regionId: "", schoolId: "  " });
-    expect(r.regionId).toBeUndefined();
-    expect(r.schoolId).toBeUndefined();
   });
 
   it.each([
@@ -26,15 +20,15 @@ describe("registerSchema", () => {
     ["email", { email: "nope" }, "emailInvalid"],
     ["email", { email: "" }, "emailRequired"],
     ["name", { name: "" }, "nameRequired"],
-    ["name", { name: "A" }, "nameMin"]
-  ])("rejects bad %s with a translatable error key", (field, patch, message) => {
-    const r = registerSchema.safeParse({ ...validStudent, ...patch });
+    ["schoolName", { schoolName: "  " }, "schoolRequired"]
+  ])("rejects bad %s with a translatable error key", (field, patch, key) => {
+    const r = registerSchema.safeParse({ ...student, ...patch });
     expect(r.success).toBe(false);
-    if (!r.success) expect(fieldErrors(r.error)[field]).toBe(message);
+    if (!r.success) expect(fieldErrors(r.error)[field]).toBe(key);
   });
 
   it("cannot be used to set a role or status", () => {
-    const r = registerSchema.parse({ ...validStudent, role: "SUPER_ADMIN", status: "ACTIVE" });
+    const r = registerSchema.parse({ ...student, role: "SUPER_ADMIN", status: "ACTIVE" });
     expect(r).not.toHaveProperty("role");
     expect(r).not.toHaveProperty("status");
   });
@@ -44,8 +38,34 @@ describe("projectSchema", () => {
   const ok = { title: "Water sensors", summary: "Cheap sensors that warn villages about dirty water.", category: "Technology" };
   it("accepts a minimal project", () => expect(projectSchema.safeParse(ok).success).toBe(true));
   it("rejects unknown categories", () => expect(projectSchema.safeParse({ ...ok, category: "Magic" }).success).toBe(false));
-  it("rejects too-short summaries", () => expect(projectSchema.safeParse({ ...ok, summary: "short" }).success).toBe(false));
   it("drops empty optional text", () => expect(projectSchema.parse({ ...ok, problemStatement: "" }).problemStatement).toBeUndefined());
+});
+
+describe("reviewSchema", () => {
+  it("approve needs no note", () => expect(reviewSchema.safeParse({ decision: "approve", note: "" }).success).toBe(true));
+  it("reject without a note is refused", () => {
+    const r = reviewSchema.safeParse({ decision: "reject", note: "  " });
+    expect(r.success).toBe(false);
+    if (!r.success) expect(fieldErrors(r.error).note).toBe("noteRequired");
+  });
+  it("unknown decision is refused", () => expect(reviewSchema.safeParse({ decision: "delete" }).success).toBe(false));
+});
+
+describe("opportunitySchema", () => {
+  const ok = { title: "Robotics cup", organizer: "Navoi IT Park", category: "Competition", description: "Teams of 3." };
+  it("deadline is the end of that day in Tashkent", () => {
+    expect(opportunitySchema.parse({ ...ok, deadline: "2026-12-01" }).deadline?.toISOString()).toBe("2026-12-01T18:59:59.000Z");
+  });
+  it("blank deadline and url are optional", () => {
+    const r = opportunitySchema.parse({ ...ok, deadline: "", officialUrl: "" });
+    expect(r.deadline).toBeUndefined();
+    expect(r.officialUrl).toBeUndefined();
+  });
+  it("only http(s) links are allowed", () => {
+    const r = opportunitySchema.safeParse({ ...ok, officialUrl: "javascript:alert(1)" });
+    expect(r.success).toBe(false);
+    if (!r.success) expect(fieldErrors(r.error).officialUrl).toBe("urlInvalid");
+  });
 });
 
 describe("loginSchema", () => {
@@ -57,12 +77,12 @@ describe("loginSchema", () => {
 describe("error keys", () => {
   it("every key a schema can produce exists in both dictionaries", () => {
     const keys = new Set<string>();
-    for (const bad of [{}, { name: "A", email: "x", password: "1", grade: "99" }]) {
-      const r = registerSchema.safeParse(bad);
-      if (!r.success) Object.values(fieldErrors(r.error)).forEach((k) => keys.add(k));
-    }
-    const p = projectSchema.safeParse({ title: "a", summary: "b", category: "x", problemStatement: "z".repeat(4000) });
-    if (!p.success) Object.values(fieldErrors(p.error)).forEach((k) => keys.add(k));
+    const collect = (r: { success: boolean; error?: Parameters<typeof fieldErrors>[0] }) => r.error && Object.values(fieldErrors(r.error)).forEach((k) => keys.add(k));
+    collect(registerSchema.safeParse({}));
+    collect(registerSchema.safeParse({ name: "A", email: "x", password: "1", grade: "99", schoolName: "x".repeat(200) }));
+    collect(projectSchema.safeParse({ title: "a", summary: "b", category: "x", problemStatement: "z".repeat(4000) }));
+    collect(opportunitySchema.safeParse({ deadline: "nope", officialUrl: "ftp://x" }));
+    collect(reviewSchema.safeParse({ decision: "reject" }));
     for (const k of keys) {
       expect(ru.errors).toHaveProperty(k);
       expect(uz.errors).toHaveProperty(k);

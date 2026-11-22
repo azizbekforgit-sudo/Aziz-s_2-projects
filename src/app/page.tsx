@@ -1,129 +1,107 @@
 import Link from "next/link";
-import { ArrowUpRight, Compass, Rocket, Network, Send, Sparkles, ShieldCheck, Eye, HeartHandshake } from "lucide-react";
-import { PublicPage } from "@/components/public-page";
+import { ArrowRight } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { PUBLIC_PROJECT_STATUSES } from "@/lib/projects";
+import { shortName } from "@/lib/format";
 import { getDict } from "@/i18n/server";
 import { fmt } from "@/i18n/fmt";
+import { PublicPage } from "@/components/public-page";
+import { Stamp } from "@/components/stamp";
 
-// Order matches t.home.mechanisms / t.home.steps.
-const MECH = [
-  { icon: Compass, accent: "violet", open: false },
-  { icon: Rocket, accent: "pink", open: true },
-  { icon: Network, accent: "teal", open: false },
-  { icon: Send, accent: "amber", open: true }
-] as const;
-const PRINCIPLE_ICONS = [ShieldCheck, Eye, HeartHandshake];
+const SOON_LINKS = ["/talent-map", "/community", "/mentorship"];
 
 export default async function Home() {
-  const t = await getDict();
+  const [t, latest] = await Promise.all([
+    getDict(),
+    prisma.project.findMany({
+      where: { status: { in: [...PUBLIC_PROJECT_STATUSES] } },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+      include: { owner: { select: { name: true, grade: true } } }
+    })
+  ]);
   const h = t.home;
+  const s = h.sample;
   return (
     <PublicPage>
       <div className="container">
         <section className="hero" aria-labelledby="hero-title">
           <div>
-            <span className="hero-pill">
-              <span className="hero-pill-dot" aria-hidden="true"><Sparkles size={13} /></span>
-              {h.pill}
-            </span>
-            <h1 id="hero-title" className="h1">
-              {h.titleA} <span className="gradient-text">{h.titleB}</span>
-            </h1>
+            <h1 id="hero-title">{h.title}</h1>
             <p className="lead">{h.lead}</p>
-            <div className="hero-cta">
-              <Link href="/register" className="btn btn-primary btn-lg">{h.ctaPrimary} <ArrowUpRight size={18} aria-hidden="true" /></Link>
+            <div className="hero-actions">
+              <Link href="/register" className="btn btn-primary btn-lg">{h.ctaPrimary}</Link>
               <Link href="/projects" className="btn btn-secondary btn-lg">{h.ctaSecondary}</Link>
             </div>
-            <dl className="hero-facts">
-              {h.facts.map((f) => (
-                <div key={f.v} className="hero-fact"><dt className="sr-only">{f.l}</dt><dd><strong>{f.v}</strong><span>{f.l}</span></dd></div>
-              ))}
+            <p className="meta hero-note">{h.note}</p>
+          </div>
+
+          {/* The moment: what a student actually submits, and the teacher's check on it. */}
+          <figure className="sheet" aria-label={s.label}>
+            <p className="sheet-title">{s.title}</p>
+            <p className="sheet-author">{s.author}</p>
+            <dl>
+              <div className="sheet-block"><dt>{s.problemLabel}</dt><dd>{s.problem}</dd></div>
+              <div className="sheet-block"><dt>{s.solutionLabel}</dt><dd>{s.solution}</dd></div>
             </dl>
-          </div>
-
-          <div className="journey" aria-hidden="true">
-            <div className="journey-head">
-              <span className="eyebrow">{h.journeyTitle}</span>
-              <span className="badge badge-success">{h.youAreHere}</span>
+            <div className="sheet-foot">
+              <span className="meta">{s.checked}</span>
+              <Stamp status="APPROVED" t={t} large />
             </div>
-            <ol className="journey-steps">
-              {MECH.map((m, i) => (
-                <li key={i} className={`journey-step accent-${m.accent}`}>
-                  <span className="icon-tile icon-tile-solid"><m.icon size={20} /></span>
-                  <span><strong>{h.mechanisms[i].name}</strong><span>{fmt(h.step, { n: i + 1 })} · {h.steps[i].t}</span></span>
-                  {m.open ? <span className="badge badge-success badge-plain">{t.common.open}</span> : <span className="badge badge-neutral badge-plain">{t.common.comingSoon}</span>}
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        <section className="section" id="mechanisms" aria-labelledby="mech-title">
-          <div className="section-head">
-            <div className="stack">
-              <span className="eyebrow">{h.mechEyebrow}</span>
-              <h2 id="mech-title" className="h2">{h.mechTitle}</h2>
-              <p className="muted">{h.mechLead}</p>
-            </div>
-          </div>
-          <div className="grid-4">
-            {MECH.map((m, i) => (
-              <article key={i} className={`mechanism accent-${m.accent}`}>
-                <span className="icon-tile icon-tile-solid"><m.icon size={20} aria-hidden="true" /></span>
-                <span className="mechanism-tag">{h.mechanisms[i].tag}</span>
-                <h3>{h.mechanisms[i].name}</h3>
-                <p>{h.mechanisms[i].desc}</p>
-              </article>
-            ))}
-          </div>
+          </figure>
         </section>
 
         <section className="section" id="how" aria-labelledby="how-title">
-          <div className="section-head">
-            <div className="stack">
-              <span className="eyebrow">{h.howEyebrow}</span>
-              <h2 id="how-title" className="h2">{h.howTitle}</h2>
-            </div>
-          </div>
+          <h2 id="how-title" className="section-title">{h.howTitle}</h2>
           <ol className="steps">
-            {h.steps.map((s, i) => (
-              <li key={s.t} className={`accent-${MECH[i].accent}`}>
-                <span className="step-num" aria-hidden="true">0{i + 1}</span>
-                <h3>{s.t}</h3>
-                <p>{s.d}</p>
+            {h.steps.map((step, i) => (
+              <li key={step.t}>
+                <span className="step-n">{i + 1}</span>
+                <h3>{step.t}</h3>
+                <p>{step.d}</p>
               </li>
             ))}
           </ol>
         </section>
 
-        <section className="section" aria-labelledby="principles-title">
-          <div className="section-head">
-            <div className="stack">
-              <span className="eyebrow">{h.principlesEyebrow}</span>
-              <h2 id="principles-title" className="h2">{h.principlesTitle}</h2>
+        {latest.length > 0 && (
+          <section className="section" aria-labelledby="latest-title">
+            <div className="section-head">
+              <h2 id="latest-title" className="section-title">{h.latestTitle}</h2>
+              <Link className="link-arrow" href="/projects">{h.latestAll} <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" /></Link>
             </div>
-          </div>
-          <div className="grid-3">
-            {h.principles.map((p, i) => {
-              const Icon = PRINCIPLE_ICONS[i];
-              return (
-                <div key={p.t} className={`card principle accent-${MECH[(i + 2) % 4].accent}`}>
-                  <span className="icon-tile"><Icon size={20} aria-hidden="true" /></span>
-                  <div><h3>{p.t}</h3><p>{p.d}</p></div>
-                </div>
-              );
-            })}
-          </div>
+            <div className="cards">
+              {latest.map((p) => (
+                <Link key={p.id} href={`/projects/${p.id}`} className="card project-card">
+                  <span className="meta">{t.categories[p.category as keyof typeof t.categories] ?? p.category}</span>
+                  <h3>{p.title}</h3>
+                  <p>{p.summary}</p>
+                  <span className="meta">{fmt(t.project.author, { name: shortName(p.owner.name), grade: p.owner.grade ?? "—" })}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="section" aria-labelledby="soon-title">
+          <h2 id="soon-title" className="section-title">{h.soonTitle}</h2>
+          <ul className="soon-rows">
+            {h.soon.map((m, i) => (
+              <li key={m.name}>
+                <strong>{m.name}</strong>
+                <span className="muted">{m.d}</span>
+                <Link className="link-arrow" href={SOON_LINKS[i]}>{h.more}<span className="sr-only"> — {m.name}</span></Link>
+              </li>
+            ))}
+          </ul>
         </section>
 
-        <section className="section" aria-labelledby="cta-title">
-          <div className="cta-band">
-            <div className="stack">
-              <span className="eyebrow">{h.ctaEyebrow}</span>
-              <h2 id="cta-title" className="h2">{h.ctaTitle}</h2>
-              <p>{h.ctaText}</p>
-            </div>
-            <Link className="btn btn-white btn-lg" href="/register">{h.ctaButton} <ArrowUpRight size={18} aria-hidden="true" /></Link>
+        <section className="closing" aria-labelledby="closing-title">
+          <div className="stack-sm">
+            <h2 id="closing-title" className="title">{h.ctaTitle}</h2>
+            <p className="muted">{h.ctaText}</p>
           </div>
+          <Link className="btn btn-primary btn-lg" href="/register">{h.ctaButton}</Link>
         </section>
       </div>
     </PublicPage>

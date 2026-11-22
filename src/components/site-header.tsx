@@ -1,48 +1,46 @@
 import Link from "next/link";
-import { ArrowUpRight, Menu } from "lucide-react";
 import { auth } from "@/auth";
 import { getDict } from "@/i18n/server";
-import { Brand } from "./brand";
+import { Wordmark } from "./wordmark";
 import { LanguageSwitcher } from "./language-switcher";
 
-/** Public header. Shows "My dashboard" instead of sign-in buttons when the visitor is signed in. */
 export async function SiteHeader() {
   const [session, t] = await Promise.all([auth(), getDict()]);
   const signedIn = !!session?.user;
   const links = [
-    { href: "/#mechanisms", label: t.nav.mechanisms },
-    { href: "/#how", label: t.nav.how },
     { href: "/projects", label: t.nav.projects },
-    { href: "/opportunities", label: t.nav.opportunities }
+    { href: "/opportunities", label: t.nav.opportunities },
+    { href: "/#how", label: t.nav.how }
   ];
+  const account = signedIn ? (
+    <Link className="btn btn-primary" href="/dashboard">{t.appNav.myProjects}</Link>
+  ) : (
+    <>
+      <Link href="/login">{t.common.signIn}</Link>
+      <Link className="btn btn-primary" href="/register">{t.common.signUp}</Link>
+    </>
+  );
   return (
     <header className="site-header">
       <div className="container site-header-inner">
-        <Link href="/" aria-label={t.common.home}><Brand /></Link>
-        <nav className="nav-links" aria-label={t.nav.mechanisms}>
+        <Link href="/" aria-label={t.common.home}><Wordmark /></Link>
+        <nav className="nav-links" aria-label={t.common.home}>
           {links.map((l) => <Link key={l.href} href={l.href}>{l.label}</Link>)}
         </nav>
         <div className="nav-actions">
           <LanguageSwitcher />
-          {signedIn ? (
-            <Link className="btn btn-primary" href="/dashboard">{t.common.goDashboard} <ArrowUpRight size={16} aria-hidden="true" /></Link>
-          ) : (
-            <>
-              <Link className="btn btn-ghost" href="/login">{t.common.signIn}</Link>
-              <Link className="btn btn-primary" href="/register">{t.common.join}</Link>
-            </>
-          )}
+          {account}
         </div>
         <details className="mobile-menu">
-          <summary aria-label={t.common.openMenu}><Menu size={20} aria-hidden="true" /></summary>
-          <nav className="mobile-menu-panel" aria-label={t.nav.mechanisms}>
+          <summary>{t.common.openMenu}</summary>
+          <nav className="mobile-menu-panel" aria-label={t.common.home}>
             {links.map((l) => <Link key={l.href} href={l.href}>{l.label}</Link>)}
             {signedIn ? (
-              <Link className="btn btn-primary btn-block" href="/dashboard">{t.common.goDashboard}</Link>
+              <Link className="btn btn-primary btn-block" href="/dashboard">{t.appNav.myProjects}</Link>
             ) : (
               <>
-                <Link className="btn btn-secondary btn-block" href="/login">{t.common.signIn}</Link>
-                <Link className="btn btn-primary btn-block" href="/register">{t.common.join}</Link>
+                <Link href="/login">{t.common.signIn}</Link>
+                <Link className="btn btn-primary btn-block" href="/register">{t.common.signUp}</Link>
               </>
             )}
             <LanguageSwitcher />

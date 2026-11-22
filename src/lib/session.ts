@@ -23,11 +23,3 @@ export async function requireRole(allowed: readonly Role[]) {
   if (!hasRole(user.role, allowed)) redirect("/dashboard");
   return user;
 }
-
-/** Same as requireUser but returns null instead of redirecting (for API routes and public pages). */
-export async function getActiveUser() {
-  const session = await auth();
-  if (!session?.user?.id) return null;
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-  return user && user.status === "ACTIVE" ? user : null;
-}

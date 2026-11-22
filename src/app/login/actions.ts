@@ -2,8 +2,9 @@
 import { AuthError } from "next-auth";
 import { headers } from "next/headers";
 import { signIn } from "@/auth";
+import { clearFailures, isLocked, recordFailure } from "@/lib/rate-limit";
 
-export type LoginState = { error?: "invalid" | "inactive"; email?: string };
+export type LoginState = { error?: "invalid" | "pending" | "blocked" | "tooMany"; email?: string };
 
 /**
  * Only allow redirects back to our own site (prevents open-redirect via ?callbackUrl=https://evil).
@@ -23,20 +24,20 @@ async function safeCallback(url: FormDataEntryValue | null): Promise<string> {
 }
 
 export async function loginAction(_prev: LoginState, formData: FormData): Promise<LoginState> {
-  const email = String(formData.get("email") ?? "");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (isLocked(email)) return { email, error: "tooMany" };
   try {
-    await signIn("credentials", {
-      email,
-      password: formData.get("password"),
-      redirectTo: await safeCallback(formData.get("callbackUrl"))
-    });
+    await signIn("credentials", { email, password: formData.get("password"), redirectTo: await safeCallback(formData.get("callbackUrl")) });
     return {};
   } catch (e) {
-    // signIn() throws a redirect on success — it must be re-thrown, not swallowed.
     if (e instanceof AuthError) {
       const code = (e as AuthError & { code?: string }).code;
-      return { email, error: code === "inactive" ? "inactive" : "invalid" };
+      if (code === "pending" || code === "blocked") return { email, error: code };
+      recordFailure(email);
+      return { email, error: "invalid" };
     }
+    // signIn() throws a redirect on success — it must be re-thrown, not swallowed.
+    clearFailures(email);
     throw e;
   }
 }

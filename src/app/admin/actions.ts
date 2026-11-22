@@ -1,32 +1,57 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
 import { MODERATOR_ROLES } from "@/lib/roles";
 import { audit } from "@/lib/audit";
+import { fieldErrors, opportunitySchema, reviewSchema, type ErrorKey } from "@/lib/validators";
 
 // Every action re-checks the role against the database: server actions are public HTTP endpoints,
 // hiding a button in the UI is NOT access control.
+// Status changes use `updateMany ... where status = <expected>` so two moderators can't decide twice.
 
 export async function setUserStatus(formData: FormData) {
   const admin = await requireRole(MODERATOR_ROLES);
   const userId = String(formData.get("userId"));
-  const decision = formData.get("decision") === "approve" ? "ACTIVE" : "DEACTIVATED";
-  const before = await prisma.user.findUnique({ where: { id: userId }, select: { status: true } });
-  if (!before || before.status !== "PENDING") return; // already handled by someone else
-  await prisma.user.update({ where: { id: userId }, data: { status: decision } });
-  await audit({ actorId: admin.id, action: `user.${decision.toLowerCase()}`, entityType: "User", entityId: userId, oldValue: before, newValue: { status: decision } });
+  const status = formData.get("decision") === "approve" ? "ACTIVE" : "DEACTIVATED";
+  await prisma.$transaction(async (tx) => {
+    const { count } = await tx.user.updateMany({ where: { id: userId, status: "PENDING" }, data: { status } });
+    if (count) await audit(tx, { actorId: admin.id, action: `user.${status.toLowerCase()}`, entityType: "User", entityId: userId, newValue: { status } });
+  });
   revalidatePath("/admin");
 }
 
-export async function setProjectStatus(formData: FormData) {
+export type ReviewState = { error?: ErrorKey };
+
+export async function reviewProject(_prev: ReviewState, formData: FormData): Promise<ReviewState> {
   const admin = await requireRole(MODERATOR_ROLES);
   const projectId = String(formData.get("projectId"));
-  const decision = formData.get("decision") === "approve" ? "APPROVED" : "REJECTED";
-  const before = await prisma.project.findUnique({ where: { id: projectId }, select: { status: true } });
-  if (!before || before.status !== "PENDING_REVIEW") return;
-  await prisma.project.update({ where: { id: projectId }, data: { status: decision } });
-  await audit({ actorId: admin.id, action: `project.${decision.toLowerCase()}`, entityType: "Project", entityId: projectId, oldValue: before, newValue: { status: decision } });
+  const parsed = reviewSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: fieldErrors(parsed.error).note ?? "generic" };
+  const status = parsed.data.decision === "approve" ? "APPROVED" : "REJECTED";
+  const reviewNote = parsed.data.note ?? null;
+  await prisma.$transaction(async (tx) => {
+    const { count } = await tx.project.updateMany({ where: { id: projectId, status: "PENDING_REVIEW" }, data: { status, reviewNote } });
+    if (count) await audit(tx, { actorId: admin.id, action: `project.${status.toLowerCase()}`, entityType: "Project", entityId: projectId, newValue: { status, reviewNote } });
+  });
   revalidatePath("/admin");
   revalidatePath("/projects");
+  redirect("/admin");
+}
+
+export type OpportunityState = { ok?: boolean; errors?: Record<string, ErrorKey>; values?: Record<string, string> };
+
+/** Opportunities are added by moderators, so they are published right away. */
+export async function createOpportunity(_prev: OpportunityState, formData: FormData): Promise<OpportunityState> {
+  const admin = await requireRole(MODERATOR_ROLES);
+  const values = Object.fromEntries(formData) as Record<string, string>;
+  const parsed = opportunitySchema.safeParse(values);
+  if (!parsed.success) return { errors: fieldErrors(parsed.error), values };
+  await prisma.$transaction(async (tx) => {
+    const o = await tx.opportunity.create({ data: { ...parsed.data, status: "APPROVED" } });
+    await audit(tx, { actorId: admin.id, action: "opportunity.created", entityType: "Opportunity", entityId: o.id, newValue: { title: o.title } });
+  });
+  revalidatePath("/opportunities");
+  return { ok: true };
 }

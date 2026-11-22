@@ -5,9 +5,13 @@ import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validators";
 import { authConfig } from "./auth.config";
 
-/** Thrown when the password is correct but the account is not active yet / anymore. */
-export class InactiveAccountError extends CredentialsSignin {
-  code = "inactive";
+/** Password is right but the account is still waiting for approval. */
+class PendingAccountError extends CredentialsSignin {
+  code = "pending";
+}
+/** Password is right but the account was rejected or blocked — waiting won't help. */
+class BlockedAccountError extends CredentialsSignin {
+  code = "blocked";
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -20,7 +24,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!parsed.success) return null;
         const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
         if (!user || !(await compare(parsed.data.password, user.passwordHash))) return null;
-        if (user.status !== "ACTIVE") throw new InactiveAccountError();
+        if (user.status === "PENDING") throw new PendingAccountError();
+        if (user.status !== "ACTIVE") throw new BlockedAccountError();
         return { id: user.id, name: user.name, email: user.email, role: user.role };
       }
     })

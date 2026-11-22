@@ -12,10 +12,8 @@ export default async function NewProject() {
   const [user, t] = await Promise.all([requireUser(), getDict()]);
   return (
     <AppShell user={user}>
-      <div className="accent-pink">
-        <PageHeader eyebrow={t.newProject.eyebrow} title={t.newProject.title} description={t.newProject.lead} />
-      </div>
-      <div className="card card-pad-lg">
+      <PageHeader title={t.newProject.title} lead={t.newProject.lead} />
+      <div className="panel">
         <ProjectForm />
       </div>
     </AppShell>

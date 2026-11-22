@@ -6,7 +6,7 @@ A working foundation for the TALENT TO IMPACT ecosystem, based on Master Specifi
 - Next.js 15 App Router + React 19 + TypeScript (strict)
 - PostgreSQL 16 + Prisma
 - Auth.js v5 credentials authentication (JWT sessions)
-- Own CSS design system (`src/app/globals.css`), Lucide icons, Manrope / Plus Jakarta Sans via `next/font`
+- Own CSS design system "school notebook" (`src/app/globals.css`, made with the unslop skill), Golos Text + Literata via `next/font`, Lucide icons
 - Vitest (unit), Playwright + axe (end-to-end, accessibility), GitHub Actions CI
 
 📐 **How the project is structured, with diagrams: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**
@@ -37,15 +37,12 @@ npm run test:e2e    # production build + full user journey in a real browser + a
 CI runs both on every push (`.github/workflows/ci.yml`).
 
 ## Implemented
-- Public landing page, projects and opportunities listings
-- Student registration with validation → pending approval
-- Sign-in with clear errors (wrong password vs. account not yet approved), safe redirect back
-- Student dashboard: own projects with review status, verified XP, teams
-- Project submission form → moderation queue
-- Admin: live counts, approve/reject accounts, approve/reject projects, audit log
-- Role-based access checked against the database on every request
+- Public pages in Uzbek (default) and Russian: home, approved projects, project page, competitions & scholarships
+- Student registration with school and grade → coordinator approval (pending and rejected accounts get different messages)
+- Sign-in with a limit of 5 failed attempts per 15 minutes, safe redirect back
+- Project submission → moderator reads the full project and approves or returns it with a required note → student sees the note
+- Moderation page: account requests, projects in review, adding competitions/scholarships, decision log (all decisions transactional)
 - Honest "coming soon" pages for Talent Map, Knowledge Bridge and Mentorship
-- Initial Navoi region, administrator and eight competency records
 
 ## Explicitly not complete yet
 This is a runnable foundation / first implementation slice, **not yet the fully deployed national platform**. The following must not be mistaken for completed functionality:
@@ -79,4 +76,4 @@ Render Blueprint in `render.yaml` (web service + PostgreSQL). Every push to the 
 10. Do not expose student contact details or private profiles publicly.
 
 ## Design direction
-Deep purple (#160B2E), electric purple (#9B5CFF), neon pink (#D66BFF), cyan (#55D6E8), gold (#FFC857); restrained glass surfaces, subtle glow and generous spacing. The layout uses premium SaaS visual language rather than a school portal template.
+See `docs/ARCHITECTURE.md` §6: warm paper, one blue ink accent, a notebook sheet as the only rich moment and a teacher's check stamp for project status. No gradients, glows or uppercase labels.

@@ -1,16 +1,14 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { PUBLIC_PROJECT_STATUSES } from "@/lib/projects";
 
+/** Only numbers someone can act on or that change — no counters for features that don't exist yet. */
 export async function getOverviewCounts() {
-  const [students, mentors, teachers, projects, pendingUsers, pendingProjects, regions, schools] = await Promise.all([
-    prisma.user.count({ where: { role: "STUDENT", status: "ACTIVE" } }),
-    prisma.user.count({ where: { role: "MENTOR", verification: "VERIFIED" } }),
-    prisma.user.count({ where: { role: "TEACHER" } }),
-    prisma.project.count(),
+  const [pendingUsers, pendingProjects, students, published] = await Promise.all([
     prisma.user.count({ where: { status: "PENDING" } }),
     prisma.project.count({ where: { status: "PENDING_REVIEW" } }),
-    prisma.region.count({ where: { isActive: true } }),
-    prisma.school.count()
+    prisma.user.count({ where: { role: "STUDENT", status: "ACTIVE" } }),
+    prisma.project.count({ where: { status: { in: [...PUBLIC_PROJECT_STATUSES] } } })
   ]);
-  return { students, mentors, teachers, projects, pendingUsers, pendingProjects, regions, schools };
+  return { pendingUsers, pendingProjects, students, published };
 }

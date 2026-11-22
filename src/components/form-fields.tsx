@@ -4,12 +4,13 @@ import { Loader2 } from "lucide-react";
 import { useI18n } from "@/i18n/client";
 import type { ErrorKey } from "@/lib/validators";
 
-type Common = { name: string; label: string; error?: ErrorKey; hint?: string };
+type Common = { name: string; label: React.ReactNode; error?: ErrorKey; hint?: string };
 
 function describedBy(name: string, error?: string, hint?: string) {
   return [error && `${name}-error`, hint && `${name}-hint`].filter(Boolean).join(" ") || undefined;
 }
 
+// Hint and error live OUTSIDE <label> and are linked via aria-describedby, so they are not part of the field name.
 /** Hint under the field, replaced by the translated error when validation fails. */
 function Meta({ name, error, hint }: { name: string; error?: ErrorKey; hint?: string }) {
   const { t } = useI18n();
@@ -23,33 +24,33 @@ function Meta({ name, error, hint }: { name: string; error?: ErrorKey; hint?: st
 
 export function TextField({ name, label, error, hint, ...rest }: Common & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <label className="field">
-      <span className="field-label">{label}</span>
-      <input className="input" name={name} aria-invalid={!!error || undefined} aria-describedby={describedBy(name, error, hint)} {...rest} />
+    <div className="field">
+      <label className="field-label" htmlFor={name}>{label}</label>
+      <input className="input" id={name} name={name} aria-invalid={!!error || undefined} aria-describedby={describedBy(name, error, hint)} {...rest} />
       <Meta name={name} error={error} hint={hint} />
-    </label>
+    </div>
   );
 }
 
 export function TextArea({ name, label, error, hint, ...rest }: Common & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
-    <label className="field">
-      <span className="field-label">{label}</span>
-      <textarea className="input" name={name} aria-invalid={!!error || undefined} aria-describedby={describedBy(name, error, hint)} {...rest} />
+    <div className="field">
+      <label className="field-label" htmlFor={name}>{label}</label>
+      <textarea className="input" id={name} name={name} aria-invalid={!!error || undefined} aria-describedby={describedBy(name, error, hint)} {...rest} />
       <Meta name={name} error={error} hint={hint} />
-    </label>
+    </div>
   );
 }
 
 export function SelectField({ name, label, error, hint, children, ...rest }: Common & React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <label className="field">
-      <span className="field-label">{label}</span>
-      <select className="input" name={name} aria-invalid={!!error || undefined} aria-describedby={describedBy(name, error, hint)} {...rest}>
+    <div className="field">
+      <label className="field-label" htmlFor={name}>{label}</label>
+      <select className="input" id={name} name={name} aria-invalid={!!error || undefined} aria-describedby={describedBy(name, error, hint)} {...rest}>
         {children}
       </select>
       <Meta name={name} error={error} hint={hint} />
-    </label>
+    </div>
   );
 }
 

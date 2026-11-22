@@ -26,7 +26,7 @@ test("@live mobile menu opens and links work", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto("/");
   await page.locator(".mobile-menu > summary").click();
-  await page.locator(".mobile-menu-panel").getByRole("link", { name: uz.nav.projects }).click();
+  await page.locator(".mobile-menu-panel").getByRole("link", { name: uz.nav.projects, exact: true }).click();
   await expect(page).toHaveURL("/projects");
 });
 

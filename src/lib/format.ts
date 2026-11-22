@@ -13,6 +13,8 @@ export function formatDate(d: Date, locale: Locale): string {
   return f.format(d);
 }
 
-export function firstName(name: string): string {
-  return name.trim().split(/\s+/)[0] ?? name;
+/** "Aziza Karimova" → "Aziza K." — students are minors, public pages never show full names. */
+export function shortName(name: string): string {
+  const [first, last] = name.trim().split(/\s+/);
+  return last ? `${first} ${last[0]}.` : first;
 }

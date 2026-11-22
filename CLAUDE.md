@@ -11,8 +11,8 @@ Next.js 15 App Router · React 19 · TypeScript strict · Prisma 6 + PostgreSQL 
 - **Edge safety:** `src/middleware.ts` and `src/auth.config.ts` must not import Prisma, bcrypt or `@/auth`.
 - **Text / i18n:** no user-facing strings in components. Add the key to `src/i18n/ru.ts` (source of truth), then `uz.ts` (TS forces it). Server: `await getDict()`; client: `useI18n()`. Default language is Uzbek (cookie `lang`).
 - **Validation:** all form rules live in `src/lib/validators.ts`; errors are keys of `errors.*` in the dictionaries. API routes and server actions share them.
-- **Moderation actions** write to the audit log via `audit()`.
-- **Styling (light theme):** no `style={{}}` (ESLint error). Use tokens/classes from `globals.css`; accents via `accent-violet|pink|teal|amber`. Text colours must pass WCAG AA (axe runs in e2e). Min text 13px, min tap target 44px, `:focus-visible` on everything. DB enum values are shown via `<StatusBadge>`, never raw.
+- **Moderation:** status changes use `updateMany where status = <expected>` + `audit(tx, …)` in one `$transaction`. Rejecting a project requires a note. Pending projects are 404 for anyone but the owner and admin roles. Public pages show students as `shortName()` ("Aziza K.").
+- **Design ("school notebook", made with the `unslop` skill in `.claude/skills/unslop`):** paper ramp + ONE ink accent (`--ink`). No gradients, gradient text, glows, coloured shadows, background blobs, uppercase tracked labels, weights ≥700, hover lifts, emoji, greetings or exclamation marks. The notebook sheet is the only rich moment; `<Stamp>` is the signature and is used ONLY for project status. No `style={{}}` (ESLint). Text must pass WCAG AA (axe in e2e). Form hints/errors stay outside `<label>`.
 - **Dates:** use `formatDate(date, locale)` (Asia/Tashkent).
 - **Stale tabs:** `deploymentId` in `next.config.ts` + `no-store` HTML. Don't remove — that's what caused the recurring old-code `reset()` error.
 - **Never** call `e.currentTarget` / `form.reset()` after an `await` in a handler; use server actions + `useActionState`.
