@@ -2,6 +2,8 @@
 
 A working foundation for the TALENT TO IMPACT ecosystem, based on Master Specification 2.0.
 
+📘 **Full project overview in Russian (what it does, who uses it, how it works): [`PROJECT.md`](PROJECT.md)**
+
 ## Stack
 - Next.js 15 App Router + React 19 + TypeScript (strict)
 - PostgreSQL 16 + Prisma
