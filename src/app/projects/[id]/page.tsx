@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { PUBLIC_PROJECT_STATUSES } from "@/lib/projects";
@@ -10,7 +8,9 @@ import { formatDate, shortName } from "@/lib/format";
 import { getDict, getLocale } from "@/i18n/server";
 import { fmt } from "@/i18n/fmt";
 import { PublicPage } from "@/components/public-page";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Stamp } from "@/components/stamp";
+import { ProjectBody } from "@/components/project-body";
 import { ReviewForm } from "./review-form";
 
 /**
@@ -43,34 +43,45 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   if (!data) notFound();
   const { project: p, isOwner, isStaff, isPublic, canModerate } = data;
   const pt = t.project;
-  // Staff see the full name and school to verify the author; the public sees "Aziza K.".
-  const author = fmt(pt.author, { name: isStaff || isOwner ? p.owner.name : shortName(p.owner.name), grade: p.owner.grade ?? "—" });
+  // Staff and the owner see the full name (and staff the school) to verify the author; the public sees "Aziza K.".
+  const author = fmt(pt.author, { name: isStaff || isOwner ? p.owner.name : shortName(p.owner.name), grade: p.owner.grade ?? "—" }) + (isStaff && p.owner.schoolName ? ` · ${p.owner.schoolName}` : "");
+  const crumbs = isStaff ? { href: "/admin", label: t.nav.moderation } : isOwner && !isPublic ? { href: "/dashboard", label: t.nav.myProjects } : { href: "/projects", label: t.nav.projects };
+  const toc = [
+    { id: "summary", label: pt.summary },
+    ...(p.problemStatement ? [{ id: "problem", label: pt.problem }] : []),
+    ...(p.proposedSolution ? [{ id: "solution", label: pt.solution }] : [])
+  ];
 
   return (
     <PublicPage>
-      <div className="container section">
-        <Link href={isStaff ? "/admin" : isOwner ? "/dashboard" : "/projects"} className="back-link">
-          <ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" /> {isStaff ? t.appNav.admin : isOwner ? t.appNav.myProjects : pt.back}
-        </Link>
+      <div className="container page-top">
+        <Breadcrumbs label={t.common.breadcrumbs} items={[{ href: "/", label: t.common.home }, crumbs, { label: p.title }]} />
         <div className="doc">
-          <article className="sheet">
-            <p className="meta">{t.categories[p.category as keyof typeof t.categories] ?? p.category}</p>
-            <h1 className="sheet-title">{p.title}</h1>
-            <p className="sheet-author">{author}{isStaff && p.owner.schoolName ? ` · ${p.owner.schoolName}` : ""}</p>
-            <dl>
-              <div className="sheet-block"><dt>{pt.summary}</dt><dd>{p.summary}</dd></div>
-              {p.problemStatement && <div className="sheet-block"><dt>{pt.problem}</dt><dd>{p.problemStatement}</dd></div>}
-              {p.proposedSolution && <div className="sheet-block"><dt>{pt.solution}</dt><dd>{p.proposedSolution}</dd></div>}
-            </dl>
-            <div className="sheet-foot">
-              <span className="meta">{fmt(pt.submitted, { date: formatDate(p.createdAt, locale) })}</span>
-              <Stamp status={p.status} t={t} large />
-            </div>
+          <article>
+            <header className="doc-head">
+              <span className="tag">{t.categories[p.category as keyof typeof t.categories] ?? p.category}</span>
+              <h1 className="h1">{p.title}</h1>
+              <div className="doc-meta">
+                <span>{author}</span>
+                <span className="caption">{fmt(pt.submitted, { date: formatDate(p.createdAt, locale) })}</span>
+                <Stamp status={p.status} t={t} large animate />
+              </div>
+            </header>
+            <ProjectBody t={t} summary={p.summary} problem={p.problemStatement} solution={p.proposedSolution} />
           </article>
           <aside className="doc-side">
-            {!isPublic && <p className="alert">{pt.private}</p>}
-            {p.reviewNote && (isOwner || isStaff) && <p className="note"><span className="note-label">{pt.note}</span>{p.reviewNote}</p>}
-            {canModerate && p.status === "PENDING_REVIEW" && <ReviewForm projectId={p.id} />}
+            {!isPublic && <p className="notice notice-info">{pt.private}</p>}
+            {p.reviewNote && (isOwner || isStaff) && <p className="comment"><span className="comment-label">{pt.note}</span>{p.reviewNote}</p>}
+            {canModerate && p.status === "PENDING_REVIEW" ? (
+              <ReviewForm projectId={p.id} />
+            ) : (
+              toc.length > 1 && (
+                <nav className="card toc" aria-labelledby="toc-title">
+                  <h2 id="toc-title" className="caption">{pt.contents}</h2>
+                  <ol>{toc.map((x, i) => <li key={x.id}><a href={`#${x.id}`}><span className="idx">{String(i).padStart(2, "0")}</span>{x.label}</a></li>)}</ol>
+                </nav>
+              )
+            )}
           </aside>
         </div>
       </div>

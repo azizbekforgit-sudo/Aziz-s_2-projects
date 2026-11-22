@@ -7,9 +7,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getDict()).meta.register };
 }
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const t = await getDict();
   return (
-    <AuthPage>
+    <AuthPage artTitle={t.register.asideTitle} artText={t.register.asideText}>
       <RegisterForm />
     </AuthPage>
   );

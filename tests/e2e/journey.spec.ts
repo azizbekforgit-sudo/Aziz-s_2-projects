@@ -21,7 +21,7 @@ function failOnPageErrors(page: Page) {
 async function login(page: Page, email: string, password: string) {
   await page.goto("/login");
   await page.getByLabel(t.login.email).fill(email);
-  await page.getByLabel(t.login.password).fill(password);
+  await page.getByLabel(t.login.password, { exact: true }).fill(password);
   await page.getByRole("button", { name: t.login.submit, exact: true }).click();
 }
 
@@ -34,7 +34,7 @@ async function register(page: Page, s: { name: string; email: string; password: 
   await page.goto("/register");
   await page.getByLabel(t.register.name).fill(s.name);
   await page.getByLabel(t.register.email).fill(s.email);
-  await page.getByLabel(t.register.password).fill(s.password);
+  await page.getByLabel(t.register.password, { exact: true }).fill(s.password);
   await page.getByLabel(t.register.school).fill("Школа №7, Кармана");
   await page.getByLabel(t.register.grade).selectOption("9");
   await page.getByRole("button", { name: t.register.submit }).click();
@@ -64,7 +64,7 @@ test("student journey: register → approval → project → returned with a not
 
   // 3. Pending account is told to wait
   await login(page, student.email, student.password);
-  await expect(page.locator(".alert")).toHaveText(t.login.pending);
+  await expect(page.locator(".notice")).toHaveText(t.login.pending);
 
   // 4. Admin lands on moderation, sees the school, approves
   await login(page, ADMIN_EMAIL, ADMIN_PASSWORD);
@@ -126,7 +126,7 @@ test("student journey: register → approval → project → returned with a not
   await page.getByRole("link", { name: second }).first().click();
   await page.getByRole("button", { name: t.project.approve }).click();
   await expect(page).toHaveURL("/admin");
-  await expect(page.getByText(`${t.admin.actions["project.approved"]} · ${second}`)).toBeVisible();
+  await expect(page.getByRole("row").filter({ hasText: second })).toContainText(t.admin.actions["project.approved"]);
   await logout(page);
   await page.goto("/projects");
   await page.getByRole("link", { name: second }).click();
@@ -148,7 +148,7 @@ test("rejected account is told to contact the coordinator", async ({ page }) => 
   await expect(page.getByText(s.email)).toHaveCount(0);
   await logout(page);
   await login(page, s.email, s.password);
-  await expect(page.locator(".alert")).toHaveText(t.login.blocked);
+  await expect(page.locator(".notice")).toHaveText(t.login.blocked);
 });
 
 test("admin publishes an opportunity and it appears publicly", async ({ page }) => {
@@ -172,22 +172,22 @@ test("admin publishes an opportunity and it appears publicly", async ({ page }) 
 test("@live wrong password shows an error, and repeated guessing is stopped", async ({ page }) => {
   const email = `nobody-${stamp()}@example.com`;
   await login(page, email, "wrong-1");
-  await expect(page.locator(".alert")).toHaveText(t.login.invalid);
+  await expect(page.locator(".notice")).toHaveText(t.login.invalid);
   for (let i = 0; i < 4; i++) {
-    await page.getByLabel(t.login.password).fill("wrong");
+    await page.getByLabel(t.login.password, { exact: true }).fill("wrong");
     await page.getByRole("button", { name: t.login.submit, exact: true }).click();
-    await expect(page.locator(".alert")).toBeVisible();
+    await expect(page.locator(".notice")).toBeVisible();
   }
-  await page.getByLabel(t.login.password).fill("wrong");
+  await page.getByLabel(t.login.password, { exact: true }).fill("wrong");
   await page.getByRole("button", { name: t.login.submit, exact: true }).click();
-  await expect(page.locator(".alert")).toHaveText(t.login.tooMany);
+  await expect(page.locator(".notice")).toHaveText(t.login.tooMany);
 });
 
 test("protected pages redirect to sign-in and come back after login; signed-in users skip /login", async ({ page }) => {
   await page.goto("/projects/new");
   await expect(page).toHaveURL(/\/login\?callbackUrl=/);
   await page.getByLabel(t.login.email).fill(ADMIN_EMAIL);
-  await page.getByLabel(t.login.password).fill(ADMIN_PASSWORD);
+  await page.getByLabel(t.login.password, { exact: true }).fill(ADMIN_PASSWORD);
   await page.getByRole("button", { name: t.login.submit, exact: true }).click();
   await expect(page).toHaveURL("/projects/new");
   await page.goto("/login");
@@ -197,7 +197,7 @@ test("protected pages redirect to sign-in and come back after login; signed-in u
 test("open redirect is blocked", async ({ page }) => {
   await page.goto("/login?callbackUrl=https://evil.example");
   await page.getByLabel(t.login.email).fill(ADMIN_EMAIL);
-  await page.getByLabel(t.login.password).fill(ADMIN_PASSWORD);
+  await page.getByLabel(t.login.password, { exact: true }).fill(ADMIN_PASSWORD);
   await page.getByRole("button", { name: t.login.submit, exact: true }).click();
   await expect(page).toHaveURL("/admin");
 });

@@ -7,6 +7,8 @@ const PUBLIC_PAGES = ["/", "/login", "/register", "/projects", "/opportunities"]
 for (const lang of ["uz", "ru"]) for (const path of PUBLIC_PAGES) {
   test(`@live a11y [${lang}]: ${path} has no serious accessibility violations`, async ({ page, context, baseURL }) => {
     await context.addCookies([{ name: "lang", value: lang, url: baseURL! }]);
+    // Measure final colours, not frames of the entrance animation.
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(path);
     const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
     const serious = violations.filter((v) => v.impact === "serious" || v.impact === "critical");

@@ -4,7 +4,8 @@ import { useActionState } from "react";
 import { useI18n } from "@/i18n/client";
 import { fmt } from "@/i18n/fmt";
 import { registerAction, type RegisterState } from "./actions";
-import { TextField, SelectField, SubmitButton } from "@/components/form-fields";
+import { Clock3 } from "lucide-react";
+import { TextField, PasswordField, SelectField, SubmitButton } from "@/components/form-fields";
 import { GRADES } from "@/lib/validators";
 
 // No form.reset() / e.currentTarget here: the confirmation replaces the form.
@@ -19,9 +20,9 @@ export function RegisterForm() {
   if (state.ok) {
     return (
       <div className="stack" role="status">
-        <h1 className="title">{r.doneTitle}</h1>
-        <p className="muted">{r.doneText}</p>
-        <Link className="btn btn-primary btn-lg btn-block mt-16" href="/login">{r.doneButton}</Link>
+        <h1 className="h1">{r.doneTitle}</h1>
+        <p className="notice notice-info"><Clock3 size={18} strokeWidth={1.8} aria-hidden="true" /><span>{r.doneText}</span></p>
+        <Link className="btn btn-secondary btn-lg btn-block mt-16" href="/login">{r.doneButton}</Link>
       </div>
     );
   }
@@ -29,14 +30,14 @@ export function RegisterForm() {
   return (
     <>
       <div className="stack-sm">
-        <h1 className="title">{r.title}</h1>
+        <h1 className="h1">{r.title}</h1>
         <p className="muted">{r.lead}</p>
       </div>
       {/* key re-applies defaultValues after a failed submit */}
       <form action={action} className="form" noValidate key={JSON.stringify(v)}>
         <TextField name="name" label={r.name} autoComplete="name" required defaultValue={v.name} error={e.name} placeholder={r.namePh} />
         <TextField name="email" label={r.email} type="email" autoComplete="email" required defaultValue={v.email} error={e.email} />
-        <TextField name="password" label={r.password} type="password" autoComplete="new-password" required error={e.password} hint={r.passwordHint} />
+        <PasswordField name="password" label={r.password} autoComplete="new-password" required error={e.password} hint={r.passwordHint} />
         <div className="grid-2">
           <TextField name="schoolName" label={r.school} required defaultValue={v.schoolName} error={e.schoolName} placeholder={r.schoolPh} hint={r.schoolHint} />
           <SelectField name="grade" label={r.grade} required defaultValue={v.grade ?? ""} error={e.grade}>

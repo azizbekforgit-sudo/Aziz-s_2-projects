@@ -1,11 +1,12 @@
 import type { Dict } from "./ru";
 
 // Oʻzbekcha lugʻat (lotin yozuvi). Kalitlar ru.ts bilan bir xil boʻlishi shart — TypeScript va test tekshiradi.
+// Maktablarga koʻrsatishdan oldin ona tili egasi tomonidan oʻqib chiqilishi kerak.
 
 const uz: Dict = {
   meta: {
     title: "Talent to Impact — Navoiy viloyati maktab oʻquvchilari loyihalari",
-    description: "7–11-sinf oʻquvchilari real muammo va uning yechimini yozadi, koordinator loyihani tekshiradi va uni boshqa maktablar koʻradi.",
+    description: "7–11-sinf oʻquvchilari maktab yoki mahalladagi real muammoni payqab, yechim taklif qiladi, koordinator loyihani tekshiradi va uni boshqa maktablar koʻradi.",
     login: "Kirish",
     register: "Roʻyxatdan oʻtish",
     dashboard: "Mening loyihalarim",
@@ -15,75 +16,96 @@ const uz: Dict = {
     admin: "Moderatsiya",
     talentMap: "Talent Map",
     community: "Knowledge Bridge",
-    mentorship: "Mentorlik"
+    mentorship: "Mentorlik",
+    notFound: "Sahifa topilmadi",
+    error: "Xatolik"
   },
   common: {
     skip: "Asosiy qismga oʻtish",
-    home: "Talent to Impact — bosh sahifa",
+    home: "Bosh sahifa",
+    homeLabel: "Talent to Impact — bosh sahifa",
     signIn: "Kirish",
     signOut: "Chiqish",
     signUp: "Akkaunt yaratish",
     openMenu: "Menyu",
-    backHome: "Bosh sahifaga",
+    closeMenu: "Menyuni yopish",
     language: "Til",
     newTab: "(yangi oynada ochiladi)",
     soon: "Tez orada",
-    pilot: "Pilot: Navoiy viloyati, Oʻzbekiston"
+    breadcrumbs: "Navigatsiya zanjiri",
+    mainNav: "Asosiy navigatsiya",
+    accountNav: "Kabinet boʻlimlari",
+    loading: "Yuklanmoqda",
+    tagline: "Oʻquvchilar maktab va mahalla muammolarini tekshirilgan loyihalarga aylantiradigan platforma",
+    pilot: "Pilot: Navoiy viloyati, Oʻzbekiston",
+    rights: "© {year} Talent to Impact"
   },
-  nav: { how: "Qanday ishlaydi", projects: "Loyihalar", opportunities: "Tanlov va stipendiyalar" },
+  nav: { how: "Qanday ishlaydi", projects: "Loyihalar", opportunities: "Tanlov va stipendiyalar", submit: "Loyiha yuborish", moderation: "Moderatsiya", myProjects: "Mening loyihalarim" },
   home: {
-    title: "Maktab oʻquvchilari loyihalari: gʻoyadan eʼlongacha",
-    lead: "7–11-sinf oʻquvchilari maktabi yoki mahallasidagi real muammoni va uni qanday hal qilishni yozadi. Koordinator loyihani tekshiradi va uni boshqa maktablar koʻradi.",
+    label: "Pilot · Navoiy viloyati",
+    title: "Muammoni payqa. Yechim yarat. Atrofingni oʻzgartir.",
+    lead: "Oʻquvchilar maktabi yoki mahallasidagi real muammoni va uni hal qilish yoʻlini yozadi. Koordinator loyihani tekshiradi va uni boshqa maktablar koʻradi.",
     ctaPrimary: "Akkaunt yaratish",
     ctaSecondary: "Loyihalarni koʻrish",
-    note: "Hozir Navoiy viloyatida ishlaydi",
+    note: "7–11-sinf oʻquvchilari uchun",
     sample: {
-      label: "Loyiha namunasi",
+      label: "Loyiha varagʻi namunasi",
+      number: "Loyiha № 014",
+      category: "Ekologiya",
       title: "Mahalla uchun toza suv datchiklari",
-      author: "Aziza K. · 9-sinf · Karmana",
+      author: "Aziza K. · 9-sinf",
       problemLabel: "Muammo",
-      problem: "Maktab yonidagi ariqdagi suv yomgʻirdan keyin loyqalanadi va bu haqda kech bilishadi.",
+      problem: "Maktab yonidagi ariqdagi suv yomgʻirdan keyin loyqalanadi va bu haqda juda kech bilishadi.",
       solutionLabel: "Yechim",
       solution: "Arduino’dagi uchta loyqalik datchigi koʻrsatkichlarni mahallaning telegram kanaliga yuboradi.",
-      checked: "Koordinator tomonidan tekshirilgan"
+      checkLabel: "Tekshiruv",
+      check: "Navoiy viloyati koordinatori"
     },
-    howTitle: "Qanday ishlaydi",
+    trust: ["7–11-sinflar uchun", "Navoiy viloyatida pilot", "Loyihalar koordinator tekshiruvidan oʻtadi"],
+    howTitle: "Kuzatuvdan harakatga",
     steps: [
-      { t: "Roʻyxatdan oʻtish", d: "Maktabing va sinfingni koʻrsat. Koordinator akkauntni tasdiqlaydi — odatda bir-ikki kun ichida." },
-      { t: "Loyiha", d: "Atrofingda koʻrgan muammoni va uni qanday hal qilishingni yoz. Yolgʻiz yoki sinfdoshlar bilan." },
-      { t: "Tekshiruv", d: "Tekshiruvchi loyihani tasdiqlaydi yoki nimani tuzatish kerakligini yozadi. Tasdiqlangan loyihani hamma koʻradi." }
+      { t: "Payqa", d: "Maktab yoki mahalladagi muammoni koʻr." },
+      { t: "Taklif qil", d: "Gʻoyang va yechim yoʻlini yoz." },
+      { t: "Ulash", d: "Tekshiruvdan soʻng loyihani boshqa maktablar koʻradi." }
     ],
-    latestTitle: "Yangi loyihalar",
+    latestTitle: "Harakatdagi gʻoyalar",
     latestAll: "Barcha loyihalar",
+    openProject: "Loyihani ochish",
+    oppTitle: "Gʻoyadan keyingi qadam",
+    oppText: "Maktab oʻquvchilari uchun olimpiadalar, grantlar va dasturlar. Har bir imkoniyatni koordinator qoʻshadi.",
+    oppCta: "Tanlov va stipendiyalar",
     soonTitle: "Keyin nimalar qoʻshiladi",
+    soonLead: "Keyingi bosqichni tayyorlayapmiz va metodika hamda xavfsizlik qoidalari tayyor boʻlmaguncha uni ochmaymiz.",
     soon: [
-      { name: "Talent Map", d: "Sakkiz yoʻnalish boʻyicha kuchli tomonlar soʻrovnomasi" },
-      { name: "Knowledge Bridge", d: "Oʻquvchilarning oʻzlari olib boradigan mashgʻulotlar" },
-      { name: "Mentorlik", d: "Oliygohlar va kompaniyalardan tasdiqlangan ustozlar" }
+      { name: "Talent Map", d: "Kuchli tomonlar xaritasi" },
+      { name: "Knowledge Bridge", d: "«Oʻquvchidan oʻquvchiga» taʼlim" },
+      { name: "Mentorlik", d: "Ustozlar bilan bogʻlanish" }
     ],
-    more: "Batafsil",
-    ctaTitle: "Maktabing yoki mahallang uchun gʻoyang bormi",
-    ctaText: "Roʻyxatdan oʻtish bir daqiqa oladi. Tasdiqlangandan soʻng loyiha yuborish mumkin.",
+    ctaTitle: "Gʻoyang real oʻzgarishlarni boshlashi mumkin.",
     ctaButton: "Akkaunt yaratish"
   },
   login: {
-    title: "Kirish",
+    title: "Akkauntga kirish",
     lead: "Oʻquvchilar va koordinatorlar uchun",
     email: "Email",
     password: "Parol",
+    showPassword: "Parolni koʻrsatish",
+    hidePassword: "Parolni yashirish",
     submit: "Kirish",
     submitting: "Kirilmoqda…",
     newHere: "Akkauntingiz yoʻqmi?",
-    createLink: "Roʻyxatdan oʻtish",
+    createLink: "Akkaunt yaratish",
+    asideTitle: "Har bir tekshirilgan gʻoya oʻz sahifasini oladi",
+    asideText: "Oʻquvchilar loyihalarini boshqa maktablar oʻqiydi — muammo, yechim va koordinator belgisi bilan.",
     invalid: "Email yoki parol notoʻgʻri",
     pending: "Akkaunt hali tasdiqlanmagan. Koordinator yangi arizalarni tekshiradi, odatda bu bir-ikki kun oladi.",
-    blocked: "Ariza rad etilgan yoki akkaunt oʻchirilgan. Maktabingiz koordinatoriga murojaat qiling.",
-    tooMany: "Muvaffaqiyatsiz urinishlar juda koʻp. 15 daqiqadan soʻng qayta urinib koʻring.",
-    inactiveQuery: "Akkaunt faol emas. Agar hozirgina roʻyxatdan oʻtgan boʻlsangiz — koordinator tasdiqlashini kuting."
+    blocked: "Ariza rad etilgan yoki akkaunt oʻchirilgan. Maktabing koordinatoriga murojaat qil.",
+    tooMany: "Muvaffaqiyatsiz urinishlar juda koʻp. 15 daqiqadan soʻng qayta urinib koʻr.",
+    inactiveQuery: "Akkaunt faol emas. Agar hozirgina roʻyxatdan oʻtgan boʻlsang — koordinator tasdiqlashini kut."
   },
   register: {
-    title: "Oʻquvchi sifatida roʻyxatdan oʻtish",
-    lead: "7–11-sinf oʻquvchilari uchun. Koordinator akkauntni tasdiqlaydi, shundan soʻng loyiha yuborish mumkin.",
+    title: "Oʻquvchi akkauntini yarat",
+    lead: "7–11-sinf oʻquvchilari uchun roʻyxatdan oʻtish. Koordinator akkauntni tasdiqlaydi, shundan soʻng loyiha yuborish mumkin.",
     name: "Ism va familiya",
     namePh: "Aziza Karimova",
     email: "Email",
@@ -91,44 +113,46 @@ const uz: Dict = {
     passwordHint: "Kamida 10 ta belgi",
     school: "Maktab",
     schoolPh: "7-maktab, Karmana",
-    schoolHint: "Shu orqali koordinator oʻquvchi ekaningizni biladi",
+    schoolHint: "Shu orqali koordinator oʻquvchi ekaningni biladi",
     grade: "Sinf",
-    gradeSelect: "Tanlang",
+    gradeSelect: "Tanla",
     gradeN: "{n}-sinf",
-    submit: "Ariza yuborish",
-    submitting: "Yuborilmoqda…",
+    submit: "Akkaunt yaratish",
+    submitting: "Yaratilmoqda…",
     already: "Akkauntingiz bormi?",
     signInLink: "Kirish",
-    doneTitle: "Ariza yuborildi",
-    doneText: "Koordinator uni tekshiradi, odatda bir-ikki kun ichida. Tasdiqlangach, shu email va parol bilan kiring.",
+    asideTitle: "Roʻyxatdan oʻtgach, koordinator akkauntni tekshiradi",
+    asideText: "Odatda bu bir-ikki kun oladi. Soʻng birinchi loyihani yuborish mumkin.",
+    doneTitle: "Akkaunt tasdiqlanishini kutmoqda",
+    doneText: "Koordinator arizani tekshiradi, odatda bir-ikki kun ichida. Akkaunt tasdiqlanmaguncha loyiha yuborib boʻlmaydi. Tasdiqlangach, shu email va parol bilan kir.",
     doneButton: "Kirish sahifasiga"
   },
   errors: {
-    generic: "Nimadir xato ketdi. Qaytadan urinib koʻring.",
-    nameRequired: "Ism va familiyani kiriting",
+    generic: "Nimadir xato ketdi. Qaytadan urinib koʻr.",
+    nameRequired: "Ism va familiyani kirit",
     nameMin: "Ism kamida 2 ta belgi boʻlsin",
     nameMax: "Ism 80 ta belgidan oshmasin",
-    emailRequired: "Emailni kiriting",
-    emailInvalid: "Emailni tekshiring",
+    emailRequired: "Emailni kirit",
+    emailInvalid: "Emailni tekshir",
     emailTaken: "Bu email allaqachon roʻyxatdan oʻtgan",
-    passwordRequired: "Parolni kiriting",
+    passwordRequired: "Parolni kirit",
     passwordMin: "Parol kamida 10 ta belgi boʻlsin",
     passwordMax: "Parol 100 ta belgidan oshmasin",
-    gradeRequired: "Sinfni tanlang",
-    schoolRequired: "Maktabni koʻrsating",
+    gradeRequired: "Sinfni tanla",
+    schoolRequired: "Maktabni koʻrsat",
     schoolMax: "Maktab nomi 120 ta belgidan oshmasin",
-    titleRequired: "Nomini kiriting",
+    titleRequired: "Nomini kirit",
     titleMin: "Nom kamida 4 ta belgi boʻlsin",
     titleMax: "Nom juda uzun",
-    summaryRequired: "Qisqa tavsif yozing",
+    summaryRequired: "Qisqa tavsif yoz",
     summaryMin: "Tavsif kamida 20 ta belgi boʻlsin",
     summaryMax: "Tavsif 500 ta belgidan oshmasin",
-    categoryRequired: "Toifani tanlang",
+    categoryRequired: "Toifani tanla",
     textMax: "Matn juda uzun",
-    noteRequired: "Nimani tuzatish kerakligini yozing",
-    orgRequired: "Tashkilotchini koʻrsating",
-    descRequired: "Tavsif qoʻshing",
-    dateInvalid: "Sanani tekshiring",
+    noteRequired: "Nimani tuzatish kerakligini yoz",
+    orgRequired: "Tashkilotchini koʻrsat",
+    descRequired: "Tavsif qoʻsh",
+    dateInvalid: "Sanani tekshir",
     urlInvalid: "Havola https:// bilan boshlanishi kerak"
   },
   appNav: {
@@ -136,7 +160,8 @@ const uz: Dict = {
     submit: "Loyiha yuborish",
     projects: "Barcha loyihalar",
     opportunities: "Tanlov va stipendiyalar",
-    admin: "Moderatsiya"
+    admin: "Moderatsiya",
+    soonGroup: "Tayyorlanmoqda"
   },
   roles: {
     STUDENT: "Oʻquvchi",
@@ -172,61 +197,70 @@ const uz: Dict = {
   },
   dashboard: {
     title: "Mening loyihalarim",
-    lead: "Bu yerda har bir loyihaning holati koʻrinadi: tekshiruvda, tasdiqlangan yoki qayta ishlashga qaytarilgan",
+    lead: "Tekshiruvni kuzatib bor va koordinator izohlariga qayt",
     submittedTitle: "Loyiha tekshiruvga yuborildi.",
-    submittedText: "Tekshiruvchi qaror qabul qilganda holat shu yerda oʻzgaradi.",
+    submittedText: "Koordinator qaror qabul qilganda holat shu yerda oʻzgaradi.",
     emptyTitle: "Hali loyihalar yoʻq",
-    emptyText: "Maktab yoki mahallangda koʻrgan muammoni va uni qanday hal qilishingni yoz. Tekshiruvchi shu yerda javob beradi.",
+    emptyText: "Maktab yoki mahallangda koʻrgan muammoni va uni qanday hal qilishni yoz. Koordinator shu yerda javob beradi.",
     emptyCta: "Birinchi loyihani yuborish",
     submittedOn: "{category} · {date} da yuborilgan",
+    pendingHint: "Loyiha hali koʻrib chiqilmoqda",
+    approvedLink: "Eʼlon qilingan sahifani ochish",
     note: "Tekshiruvchi izohi"
   },
   projects: {
     title: "Oʻquvchilar loyihalari",
-    lead: "Koordinator tekshiruvidan oʻtgan loyihalar",
+    lead: "Koordinator tekshiruvidan oʻtgan tashabbuslar",
+    count: "Eʼlon qilingan: {n}",
     submit: "Loyiha yuborish",
-    emptyTitle: "Hali tasdiqlangan loyihalar yoʻq",
-    emptyText: "Birinchi loyihalar tekshiruvdan oʻtmoqda. Oʻzingiznikini roʻyxatdan oʻtgach yuborishingiz mumkin."
+    emptyTitle: "Hozircha boʻsh",
+    emptyText: "Birinchi loyihalar koordinator tekshiruvidan soʻng shu yerda paydo boʻladi."
   },
   project: {
     back: "Barcha loyihalar",
+    contents: "Mundarija",
     summary: "Qisqacha",
     problem: "Muammo",
     solution: "Yechim",
     author: "{name} · {grade}-sinf",
     submitted: "{date} da yuborilgan",
     note: "Tekshiruvchi izohi",
-    private: "Bu loyihani tasdiqlanmaguncha faqat siz va tekshiruvchilar koʻrasiz.",
-    decisionTitle: "Qaror",
-    noteLabel: "Oʻquvchi uchun izoh",
-    noteHint: "Rad etishda nimani tuzatish kerakligini albatta yozing",
+    private: "Bu loyihani tasdiqlanmaguncha faqat sen va tekshiruvchilar koʻrasiz.",
+    decisionTitle: "Loyiha boʻyicha qaror",
+    decisionHint: "Izohni loyiha muallifi koʻradi.",
+    noteLabel: "Muallif uchun izoh",
+    noteHint: "Qayta ishlashga qaytarishda majburiy",
     approve: "Tasdiqlash",
     reject: "Qayta ishlashga qaytarish"
   },
   newProject: {
-    title: "Loyiha yuborish",
-    lead: "Haqiqiy muammo va oʻz yechimingni yoz. Tekshiruvchi loyihani tasdiqlaydi yoki nimani tuzatish kerakligini yozadi.",
-    titleLabel: "Nomi",
+    title: "Gʻoyang haqida gapirib ber",
+    lead: "Haqiqatan payqagan muammodan boshla. Mukammal yozish shart emas — fikringni tushuntirish muhim.",
+    titleLabel: "Loyiha nomi",
     titlePh: "Mahalla uchun toza suv datchiklari",
     category: "Toifa",
-    categoryPh: "Tanlang",
+    categoryPh: "Tanla",
     summary: "Qisqacha",
     summaryHint: "20–500 ta belgi. Buni loyihalar roʻyxatida koʻrishadi.",
     problem: "Muammo",
-    problemHint: "Nima notoʻgʻri, bu kimga taalluqli",
+    problemHint: "Nima notoʻgʻri va bu kimga taalluqli",
     solution: "Yechim",
     solutionHint: "Nima qilasan va natijani qanday bilasan",
     optional: "ixtiyoriy",
     submit: "Tekshiruvga yuborish",
-    submitting: "Yuborilmoqda…"
+    submitting: "Yuborilmoqda…",
+    after: "Yuborganingdan soʻng koordinator loyihani tekshiradi. Qayta ishlash kerak boʻlsa, izohni shaxsiy kabinetingda koʻrasan.",
+    previewLabel: "Oldindan koʻrish",
+    previewNote: "Koordinator varaqni shunday koʻradi. Loyiha hali yuborilmagan.",
+    previewTitle: "Loyiha nomi"
   },
   opportunities: {
     title: "Tanlov va stipendiyalar",
-    lead: "Maktab oʻquvchilari uchun tanlovlar, olimpiadalar, stipendiyalar va dasturlar. Har birini koordinator qoʻshadi.",
-    emptyTitle: "Hozircha ochiq tanlovlar yoʻq",
-    emptyText: "Koordinatorlar ularni paydo boʻlishi bilan qoʻshadi.",
+    lead: "Maktab oʻquvchilari uchun olimpiadalar, grantlar va dasturlar. Har bir imkoniyatni koordinator qoʻshadi.",
+    emptyTitle: "Ochiq imkoniyatlar shu yerda paydo boʻladi",
+    emptyText: "Koordinatorlar tekshirilgan tanlov va dasturlarni qoʻshib boradi.",
     official: "Tashkilotchi sayti",
-    deadline: "{date} gacha",
+    deadline: "{date} gacha qabul",
     open: "Muddatsiz"
   },
   soon: {
@@ -236,7 +270,7 @@ const uz: Dict = {
     back: "Mening loyihalarimga",
     talentMap: {
       title: "Talent Map",
-      description: "Kuchli tomonlar soʻrovnomasi va rivojlanish rejasi",
+      description: "Oʻquvchiga oʻz kuchli tomonlarini yaxshiroq koʻrishga yordam beradigan vosita tayyorlayapmiz. Boʻlim metodika tasdiqlangach ochiladi.",
       features: [
         "Sakkiz yoʻnalish boʻyicha qisqa soʻrovnoma: yetakchilik, tanqidiy fikrlash, ijodkorlik, muloqot, tadbirkorlik, texnologiya, tadqiqot, ijtimoiy taʼsir",
         "Eng kuchli tomonlar koʻrsatilgan profil",
@@ -246,7 +280,7 @@ const uz: Dict = {
     },
     community: {
       title: "Knowledge Bridge",
-      description: "Oʻquvchilarning oʻzlari olib boradigan mashgʻulotlar",
+      description: "Bu yerda oʻquvchilar bir-biri bilan ulasha oladigan mashgʻulotlar paydo boʻladi. Avval moderatsiya va materiallarni tekshirish qoidalarini tayyorlayapmiz.",
       features: [
         "Viloyat tumanlari boʻyicha oʻquvchilar hamjamiyatlari",
         "«Oʻquvchidan oʻquvchiga» mashgʻulotlari",
@@ -256,11 +290,11 @@ const uz: Dict = {
     },
     mentorship: {
       title: "Mentorlik",
-      description: "Oliygohlar, kompaniyalar va NNTlardan ustozlar",
+      description: "Kelajakda oʻquvchilar oliygoh va kompaniyalardagi ustozlardan yordam ola oladi. Boʻlim ustozlar tekshirilib, voyaga yetmaganlar bilan xavfsiz muloqot qoidalari tayyorlangach ochiladi.",
       features: [
         "Faqat tekshirilgan ustozlar",
         "Qiziqish va loyihalar boʻyicha moslashtirish",
-        "Moderatorlar nazoratidagi yozishmalar — oʻquvchilar voyaga yetmagan"
+        "Moderatorlar nazoratidagi yozishmalar"
       ],
       blocker: "Avval ustozlarni tekshirish va voyaga yetmaganlar bilan xavfsiz muloqot qoidalari kerak."
     }
@@ -274,18 +308,21 @@ const uz: Dict = {
       students: "Faol oʻquvchilar",
       published: "Tasdiqlangan loyihalar"
     },
-    viewOnly: "Navbatlarni koʻrishingiz mumkin. Qarorlarni administratorlar qabul qiladi.",
+    viewOnly: "Koʻrish rejimi. Qarorlarni administratorlar qabul qiladi.",
     usersTitle: "Akkaunt arizalari",
     usersEmpty: "Yangi arizalar yoʻq",
     userMeta: "{school} · {grade}-sinf · {date}",
     noSchool: "maktab koʻrsatilmagan",
     projectsTitle: "Tekshiruvdagi loyihalar",
     projectsEmpty: "Barcha loyihalar tekshirilgan",
+    pick: "Toʻliq oʻqish uchun roʻyxatdan loyihani tanla",
     open: "Ochish",
     approve: "Tasdiqlash",
     reject: "Rad etish",
-    oppTitle: "Tanlov yoki stipendiya qoʻshish",
+    oppTitle: "Tanlov qoʻshish",
     oppLead: "Saqlangandan soʻng darhol «Tanlov va stipendiyalar» boʻlimida paydo boʻladi",
+    oppMain: "Asosiy",
+    oppDates: "Muddat va havola",
     opp: {
       title: "Nomi",
       organizer: "Tashkilotchi",
@@ -299,6 +336,7 @@ const uz: Dict = {
     },
     logTitle: "Qarorlar jurnali",
     logEmpty: "Hali qarorlar boʻlmagan",
+    logCols: { date: "Sana", who: "Kim", action: "Harakat", object: "Obyekt" },
     logBy: "{name}",
     actions: {
       "user.active": "Akkaunt tasdiqlandi",
@@ -309,6 +347,13 @@ const uz: Dict = {
     },
     deleted: "oʻchirilgan",
     system: "tizim"
+  },
+  states: {
+    notFoundTitle: "Sahifa topilmadi",
+    notFoundText: "Havola eskirgan boʻlishi yoki loyiha hali eʼlon qilinmagan boʻlishi mumkin.",
+    errorTitle: "Nimadir xato ketdi",
+    errorText: "Sahifani yangilab koʻr yoki birozdan soʻng qayt.",
+    retry: "Qayta urinish"
   }
 };
 

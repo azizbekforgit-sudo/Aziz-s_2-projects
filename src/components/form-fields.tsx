@@ -1,6 +1,7 @@
 "use client";
+import { useState } from "react";
 import { useFormStatus } from "react-dom";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useI18n } from "@/i18n/client";
 import type { ErrorKey } from "@/lib/validators";
 
@@ -17,7 +18,7 @@ function Meta({ name, error, hint }: { name: string; error?: ErrorKey; hint?: st
   return (
     <>
       {hint && !error && <span id={`${name}-hint`} className="field-hint">{hint}</span>}
-      {error && <span id={`${name}-error`} className="field-error" role="alert">{t.errors[error] ?? t.errors.generic}</span>}
+      {error && <span id={`${name}-error`} className="field-error" role="alert"><AlertCircle size={16} strokeWidth={1.8} aria-hidden="true" />{t.errors[error] ?? t.errors.generic}</span>}
     </>
   );
 }
@@ -61,5 +62,23 @@ export function SubmitButton({ children, pendingText, className = "btn btn-prima
     <button type="submit" className={className} disabled={pending} aria-disabled={pending}>
       {pending ? <><Loader2 size={16} className="spin" aria-hidden="true" /> {pendingText}</> : children}
     </button>
+  );
+}
+
+/** Password input with a show/hide toggle. */
+export function PasswordField({ name, label, error, hint, ...rest }: Common & React.InputHTMLAttributes<HTMLInputElement>) {
+  const { t } = useI18n();
+  const [shown, setShown] = useState(false);
+  return (
+    <div className="field">
+      <label className="field-label" htmlFor={name}>{label}</label>
+      <div className="password">
+        <input className="input" id={name} name={name} type={shown ? "text" : "password"} aria-invalid={!!error || undefined} aria-describedby={describedBy(name, error, hint)} {...rest} />
+        <button type="button" className="password-toggle" onClick={() => setShown((v) => !v)} aria-pressed={shown} aria-label={shown ? t.login.hidePassword : t.login.showPassword}>
+          {shown ? <EyeOff size={18} strokeWidth={1.8} aria-hidden="true" /> : <Eye size={18} strokeWidth={1.8} aria-hidden="true" />}
+        </button>
+      </div>
+      <Meta name={name} error={error} hint={hint} />
+    </div>
   );
 }
