@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { signIn } from "@/auth";
 import { clearFailures, isLocked, recordFailure } from "@/lib/rate-limit";
 
-export type LoginState = { error?: "invalid" | "pending" | "blocked" | "tooMany"; email?: string };
+export type LoginState = { error?: "invalid" | "blocked" | "tooMany"; email?: string };
 
 /**
  * Only allow redirects back to our own site (prevents open-redirect via ?callbackUrl=https://evil).
@@ -32,7 +32,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
   } catch (e) {
     if (e instanceof AuthError) {
       const code = (e as AuthError & { code?: string }).code;
-      if (code === "pending" || code === "blocked") return { email, error: code };
+      if (code === "blocked") return { email, error: code };
       recordFailure(email);
       return { email, error: "invalid" };
     }

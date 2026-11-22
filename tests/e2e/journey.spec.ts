@@ -42,7 +42,7 @@ async function register(page: Page, s: { name: string; email: string; password: 
 
 const stamp = () => `${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
-test("student journey: register → approval → project → returned with a note → resubmit → published", async ({ page }) => {
+test("student journey: register → straight into the dashboard → project → returned with a note → resubmit → published", async ({ page, browser, baseURL }) => {
   expect(ADMIN_PASSWORD, "SEED_ADMIN_PASSWORD must be set for e2e").not.toBe("");
   const assertNoErrors = failOnPageErrors(page);
   const id = stamp();
@@ -50,34 +50,24 @@ test("student journey: register → approval → project → returned with a not
   const first = `E2E черновик ${id}`;
   const second = `E2E проект ${id}`;
 
-  // 1. Register: inline validation first, then the confirmation
+  // 1. Register: inline validation first, then the student lands in the dashboard — no approval step
   await page.goto("/register");
   await page.getByRole("button", { name: t.register.submit }).click();
   await expect(page.getByText(t.errors.nameRequired)).toBeVisible();
   await expect(page.getByText(t.errors.schoolRequired)).toBeVisible();
   await register(page, student);
-  await expect(page.getByRole("heading", { name: t.register.doneTitle })).toBeVisible();
+  await expect(page).toHaveURL(/\/dashboard\?welcome=1/);
+  await expect(page.getByText(t.dashboard.welcomeTitle)).toBeVisible();
 
-  // 2. Duplicate email → friendly error
-  await register(page, student);
-  await expect(page.getByText(t.errors.emailTaken)).toBeVisible();
+  // 2. Duplicate email → friendly error (in a fresh, signed-out browser)
+  const other = await browser.newContext();
+  await other.addCookies([{ name: "lang", value: "ru", url: baseURL! }]);
+  const p2 = await other.newPage();
+  await register(p2, student);
+  await expect(p2.getByText(t.errors.emailTaken)).toBeVisible();
+  await other.close();
 
-  // 3. Pending account is told to wait
-  await login(page, student.email, student.password);
-  await expect(page.locator(".notice")).toHaveText(t.login.pending);
-
-  // 4. Admin lands on moderation, sees the school, approves
-  await login(page, ADMIN_EMAIL, ADMIN_PASSWORD);
-  await expect(page).toHaveURL("/admin");
-  const row = page.getByRole("listitem").filter({ hasText: student.email });
-  await expect(row).toContainText("Школа №7, Кармана");
-  await row.getByRole("button", { name: `${t.admin.approve} ${student.name}` }).click();
-  await expect(page.getByText(student.email)).toHaveCount(0);
-  await logout(page);
-
-  // 5. Student submits a project with full text
-  await login(page, student.email, student.password);
-  await expect(page).toHaveURL("/dashboard");
+  // 3. Student submits a project with full text
   await page.goto("/projects/new");
   await page.getByLabel(t.newProject.titleLabel).fill(first);
   await page.getByLabel(t.newProject.category).selectOption("Ecology");
@@ -93,12 +83,13 @@ test("student journey: register → approval → project → returned with a not
   const firstUrl = await page.getByRole("link", { name: first }).getAttribute("href");
   await logout(page);
 
-  // 6. Not visible to the public while in review (404, not "forbidden")
+  // 4. Not visible to the public while in review (404, not "forbidden")
   const res = await page.goto(firstUrl!);
   expect(res?.status()).toBe(404);
 
-  // 7. Admin opens the project, reads the problem text, must give a reason to return it
+  // 5. Admin opens the project, reads the problem text, must give a reason to return it
   await login(page, ADMIN_EMAIL, ADMIN_PASSWORD);
+  await expect(page).toHaveURL("/admin");
   await page.getByRole("link", { name: first }).first().click();
   await expect(page.getByText("Во дворах мало тени")).toBeVisible();
   await page.getByRole("button", { name: t.project.reject }).click();
@@ -108,13 +99,13 @@ test("student journey: register → approval → project → returned with a not
   await expect(page).toHaveURL("/admin");
   await logout(page);
 
-  // 8. Student sees the reason
+  // 6. Student sees the reason
   await login(page, student.email, student.password);
   const returned = page.getByRole("listitem").filter({ hasText: first });
   await expect(returned).toContainText(t.status.REJECTED);
   await expect(returned).toContainText("кто будет поливать");
 
-  // 9. Resubmits, admin approves, it is public
+  // 7. Resubmits, admin approves, it is public
   await page.goto("/projects/new");
   await page.getByLabel(t.newProject.titleLabel).fill(second);
   await page.getByLabel(t.newProject.category).selectOption("Ecology");
@@ -136,19 +127,6 @@ test("student journey: register → approval → project → returned with a not
   await expect(page.getByText(student.name)).toHaveCount(0);
 
   assertNoErrors();
-});
-
-test("rejected account is told to contact the coordinator", async ({ page }) => {
-  const id = stamp();
-  const s = { name: `E2E Отказ ${id}`, email: `e2e-no-${id}@example.com`, password: "student-pass-123" };
-  await register(page, s);
-  await expect(page.getByRole("heading", { name: t.register.doneTitle })).toBeVisible();
-  await login(page, ADMIN_EMAIL, ADMIN_PASSWORD);
-  await page.getByRole("button", { name: `${t.admin.reject} ${s.name}` }).click();
-  await expect(page.getByText(s.email)).toHaveCount(0);
-  await logout(page);
-  await login(page, s.email, s.password);
-  await expect(page.locator(".notice")).toHaveText(t.login.blocked);
 });
 
 test("admin publishes an opportunity and it appears publicly", async ({ page }) => {

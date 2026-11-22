@@ -16,11 +16,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getDict()).meta.dashboard };
 }
 
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ submitted?: string }> }) {
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ submitted?: string; welcome?: string }> }) {
   const user = await requireUser();
   // Moderators have no student projects; their home is the moderation queue.
   if (hasRole(user.role, ADMIN_ROLES)) redirect("/admin");
-  const [{ submitted }, t, locale, projects] = await Promise.all([
+  const [{ submitted, welcome }, t, locale, projects] = await Promise.all([
     searchParams,
     getDict(),
     getLocale(),
@@ -31,6 +31,12 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   return (
     <AppShell user={user}>
       <PageHead title={d.title} lead={d.lead} action={<Link href="/projects/new" className="btn btn-primary btn-lg">{t.appNav.submit}</Link>} />
+      {welcome && (
+        <p className="notice notice-success mt-8" role="status">
+          <CheckCircle2 size={18} strokeWidth={1.8} aria-hidden="true" />
+          <span><strong>{d.welcomeTitle}</strong> {d.welcomeText}</span>
+        </p>
+      )}
       {submitted === "project" && (
         <p className="notice notice-success mt-8" role="status">
           <CheckCircle2 size={18} strokeWidth={1.8} aria-hidden="true" />

@@ -12,7 +12,6 @@ import { AppShell, PageHead } from "@/components/app-shell";
 import { Stamp } from "@/components/stamp";
 import { ProjectBody } from "@/components/project-body";
 import { ReviewForm } from "@/app/projects/[id]/review-form";
-import { setUserStatus } from "./actions";
 import { OpportunityForm } from "./opportunity-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,12 +24,11 @@ const dateTime = (d: Date, locale: string) =>
 export default async function Admin({ searchParams }: { searchParams: Promise<{ review?: string }> }) {
   const user = await requireRole(ADMIN_ROLES);
   const canModerate = hasRole(user.role, MODERATOR_ROLES);
-  const [{ review }, t, locale, c, pendingUsers, pendingProjects, log] = await Promise.all([
+  const [{ review }, t, locale, c, pendingProjects, log] = await Promise.all([
     searchParams,
     getDict(),
     getLocale(),
     getOverviewCounts(),
-    prisma.user.findMany({ where: { status: "PENDING" }, orderBy: { createdAt: "asc" }, take: 100 }),
     prisma.project.findMany({ where: { status: "PENDING_REVIEW" }, orderBy: { createdAt: "asc" }, take: 100, include: { owner: { select: { name: true, grade: true, schoolName: true } } } }),
     prisma.auditLog.findMany({ orderBy: { createdAt: "desc" }, take: 30, include: { actor: { select: { name: true } } } })
   ]);
@@ -47,7 +45,6 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const names = new Map<string, string>([...logUsers.map((u) => [u.id, u.name] as const), ...logProjects.map((p) => [p.id, p.title] as const), ...logOpps.map((o) => [o.id, o.title] as const)]);
 
   const stats = [
-    { label: a.stats.pendingUsers, value: c.pendingUsers, due: c.pendingUsers > 0 },
     { label: a.stats.pendingProjects, value: c.pendingProjects, due: c.pendingProjects > 0 },
     { label: a.stats.students, value: c.students },
     { label: a.stats.published, value: c.published }
@@ -68,31 +65,6 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
 
         {!canModerate && <p className="notice notice-info" role="status"><Info size={18} strokeWidth={1.8} aria-hidden="true" />{a.viewOnly}</p>}
 
-        <section id="requests" className="panel admin-sec" aria-labelledby="h-requests">
-          <div className="panel-head"><h2 id="h-requests" className="h3">{a.usersTitle}</h2><span className="caption num">{pendingUsers.length}</span></div>
-          {pendingUsers.length === 0 ? (
-            <p className="muted">{a.usersEmpty}</p>
-          ) : (
-            <ul className="list">
-              {pendingUsers.map((u) => (
-                <li key={u.id} className="list-item">
-                  <div className="list-main">
-                    <span className="list-title">{u.name}</span>
-                    <span className="caption">{u.email}</span>
-                    <span className="caption">{fmt(a.userMeta, { school: u.schoolName ?? a.noSchool, grade: u.grade ?? "—", date: formatDate(u.createdAt, locale) })}</span>
-                  </div>
-                  {canModerate && (
-                    <form action={setUserStatus} className="list-actions">
-                      <input type="hidden" name="userId" value={u.id} />
-                      <button className="btn btn-primary btn-sm" name="decision" value="approve">{a.approve}<span className="sr-only"> {u.name}</span></button>
-                      <button className="btn btn-caution btn-sm" name="decision" value="reject">{a.reject}<span className="sr-only"> {u.name}</span></button>
-                    </form>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
 
         <section id="review" className="admin-sec" aria-labelledby="h-review">
           <div className="panel-head"><h2 id="h-review" className="h3">{a.projectsTitle}</h2><span className="caption num">{pendingProjects.length}</span></div>

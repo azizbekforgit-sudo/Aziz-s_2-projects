@@ -110,7 +110,7 @@ sequenceDiagram
   R->>A: server action
   A->>A: registerSchema (lib/validators)
   A->>L: registerStudent()
-  L->>DB: INSERT user (status=PENDING, role=STUDENT)
+  L->>DB: INSERT user (status=ACTIVE, role=STUDENT)
   A-->>S: «Заявка отправлена»
   AD->>DB: /admin → Approve → setUserStatus()
   DB-->>DB: status=ACTIVE + запись в AuditLog
@@ -118,7 +118,7 @@ sequenceDiagram
 ```
 
 - Публичная регистрация **всегда** создаёт `STUDENT` + `PENDING`. Сделать себя админом через форму невозможно (на это есть тест).
-- При регистрации обязательна **школа**: по ней координатор понимает, кого он одобряет.
+- **Подтверждения аккаунта нет:** регистрация создаёт `STUDENT` + `ACTIVE` и сразу выполняет вход (`registerAction` → `signIn`). Школа обязательна, её видят координаторы при проверке проекта. Старые `PENDING`-аккаунты активирует `seed.ts`.
 - `PENDING` при входе видит «ждите подтверждения», отклонённый (`DEACTIVATED`) — «обратитесь к координатору». Это разные сообщения: отклонённому ждать бесполезно.
 - 5 неудачных попыток входа за 15 минут → вход для этого email закрыт на 15 минут.
 

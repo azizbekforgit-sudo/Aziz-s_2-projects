@@ -11,17 +11,6 @@ import { fieldErrors, opportunitySchema, reviewSchema, type ErrorKey } from "@/l
 // hiding a button in the UI is NOT access control.
 // Status changes use `updateMany ... where status = <expected>` so two moderators can't decide twice.
 
-export async function setUserStatus(formData: FormData) {
-  const admin = await requireRole(MODERATOR_ROLES);
-  const userId = String(formData.get("userId"));
-  const status = formData.get("decision") === "approve" ? "ACTIVE" : "DEACTIVATED";
-  await prisma.$transaction(async (tx) => {
-    const { count } = await tx.user.updateMany({ where: { id: userId, status: "PENDING" }, data: { status } });
-    if (count) await audit(tx, { actorId: admin.id, action: `user.${status.toLowerCase()}`, entityType: "User", entityId: userId, newValue: { status } });
-  });
-  revalidatePath("/admin");
-}
-
 export type ReviewState = { error?: ErrorKey };
 
 export async function reviewProject(_prev: ReviewState, formData: FormData): Promise<ReviewState> {

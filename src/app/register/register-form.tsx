@@ -4,11 +4,10 @@ import { useActionState } from "react";
 import { useI18n } from "@/i18n/client";
 import { fmt } from "@/i18n/fmt";
 import { registerAction, type RegisterState } from "./actions";
-import { Clock3 } from "lucide-react";
 import { TextField, PasswordField, SelectField, SubmitButton } from "@/components/form-fields";
 import { GRADES } from "@/lib/validators";
 
-// No form.reset() / e.currentTarget here: the confirmation replaces the form.
+// No form.reset() / e.currentTarget here: on success the server action redirects to the dashboard.
 // (e.currentTarget.reset() after an await was the old "Cannot read properties of null" bug.)
 export function RegisterForm() {
   const { t } = useI18n();
@@ -17,15 +16,6 @@ export function RegisterForm() {
   const e = state.errors ?? {};
   const v = state.values ?? {};
 
-  if (state.ok) {
-    return (
-      <div className="stack" role="status">
-        <h1 className="h1">{r.doneTitle}</h1>
-        <p className="notice notice-info"><Clock3 size={18} strokeWidth={1.8} aria-hidden="true" /><span>{r.doneText}</span></p>
-        <Link className="btn btn-secondary btn-lg btn-block mt-16" href="/login">{r.doneButton}</Link>
-      </div>
-    );
-  }
 
   return (
     <>

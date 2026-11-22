@@ -7,7 +7,7 @@ import type { Locale } from "@/i18n/config";
 
 export type RegisterResult = { ok: true } | { ok: false; field: string; error: ErrorKey };
 
-/** Creates a PENDING student account. Public sign-up can never create any other role. */
+/** Creates an active student account (no approval step). Public sign-up can never create any other role. */
 export async function registerStudent(input: RegisterInput, locale: Locale): Promise<RegisterResult> {
   try {
     await prisma.user.create({
@@ -19,7 +19,7 @@ export async function registerStudent(input: RegisterInput, locale: Locale): Pro
         grade: input.grade,
         preferredLang: locale,
         role: "STUDENT",
-        status: "PENDING",
+        status: "ACTIVE",
         verification: "UNVERIFIED"
       }
     });

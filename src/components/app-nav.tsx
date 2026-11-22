@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { FolderOpen, FilePlus2, Compass, BookOpen, Route, Inbox, FileSearch, CalendarPlus, History } from "lucide-react";
+import { FolderOpen, FilePlus2, Compass, BookOpen, Route, FileSearch, CalendarPlus, History } from "lucide-react";
 import { useI18n } from "@/i18n/client";
 
 type Item = { href: string; label: string; icon: typeof FolderOpen; soon?: boolean };
@@ -21,7 +21,6 @@ export function AppNav({ isAdmin, variant }: { isAdmin: boolean; variant: "side"
   }, []);
   const main: Item[] = isAdmin
     ? [
-        { href: "/admin#requests", label: t.admin.usersTitle, icon: Inbox },
         { href: "/admin#review", label: t.admin.projectsTitle, icon: FileSearch },
         { href: "/admin#add", label: t.admin.oppTitle, icon: CalendarPlus },
         { href: "/admin#log", label: t.admin.logTitle, icon: History }
